@@ -34,10 +34,38 @@ def rust_backend_available() -> bool:
         return False
 
 
+def resolve_rust_sysroot_bin(cargo: Path | None = None, *, target: str = "x86_64-pc-windows-gnullvm") -> Path | None:
+    resolved = cargo or resolve_cargo()
+    rustc = resolved.parent / "rustc.exe"
+    if not rustc.exists():
+        rustc = Path("rustc")
+    probe_env = os.environ.copy()
+    probe_env["PATH"] = str(resolved.parent) + os.pathsep + probe_env.get("PATH", "")
+    completed = subprocess.run(
+        [str(rustc), "--print", "sysroot"],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=probe_env,
+    )
+    if completed.returncode != 0:
+        return None
+    sysroot = Path(completed.stdout.strip())
+    candidate = sysroot / "lib" / "rustlib" / target / "bin"
+    if candidate.exists():
+        return candidate
+    return None
+
+
 def rust_env(cargo: Path | None = None) -> dict[str, str]:
     resolved = cargo or resolve_cargo()
     env = os.environ.copy()
-    env["PATH"] = str(resolved.parent) + os.pathsep + env.get("PATH", "")
+    path_entries = [str(resolved.parent)]
+    sysroot_bin = resolve_rust_sysroot_bin(resolved)
+    if sysroot_bin is not None:
+        path_entries.append(str(sysroot_bin))
+    path_entries.append(env.get("PATH", ""))
+    env["PATH"] = os.pathsep.join([entry for entry in path_entries if entry])
     return env
 
 
