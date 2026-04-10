@@ -74,9 +74,9 @@ This repo is published as:
 
 It should be evaluated as infrastructure and reference implementation, not as a polished product UI.
 
-## CI
+## Validation Gate
 
-GitHub Actions runs the full validation gate on Windows via:
+The canonical validation command is:
 
 ```powershell
 python .\check_runtime.py
