@@ -14,9 +14,15 @@ const elements = {
   openclawConfigPath: document.querySelector("#openclawConfigPath"),
   openclawWorkspacePath: document.querySelector("#openclawWorkspacePath"),
   openclawReport: document.querySelector("#openclawReport"),
+  botChannelBadge: document.querySelector("#botChannelBadge"),
+  botChannelSelect: document.querySelector("#botChannelSelect"),
+  botChannelText: document.querySelector("#botChannelText"),
+  botChannelsList: document.querySelector("#botChannelsList"),
+  botChannelPreview: document.querySelector("#botChannelPreview"),
 };
 
 let openclawReport = null;
+let botChannelState = null;
 
 document.querySelectorAll(".surface").forEach((button) => {
   button.addEventListener("click", () => {
@@ -32,6 +38,7 @@ document.querySelector("#previewButton").addEventListener("click", previewRoutes
 document.querySelector("#saveButton").addEventListener("click", saveConfig);
 document.querySelector("#openclawPreviewButton").addEventListener("click", previewOpenClawMigration);
 document.querySelector("#openclawApplyButton").addEventListener("click", applyOpenClawGeneratedConfig);
+document.querySelector("#botChannelPreviewButton").addEventListener("click", previewBotChannel);
 
 for (const select of [elements.modeSelect, elements.agentModeSelect, elements.providerSelect]) {
   select.addEventListener("change", () => {
@@ -63,6 +70,17 @@ async function loadOpenClawDefaults() {
   if (!response.ok) return;
   elements.openclawConfigPath.value = payload.config_path || "";
   elements.openclawWorkspacePath.value = payload.workspace_path || "";
+}
+
+async function loadBotChannels() {
+  const response = await fetch("/api/bot-channels");
+  const payload = await response.json();
+  if (!response.ok) {
+    setStatus(payload.error || "Failed to load bot channels.");
+    return;
+  }
+  botChannelState = payload;
+  renderBotChannels(payload);
 }
 
 async function previewRoutes() {
@@ -135,6 +153,24 @@ function applyOpenClawGeneratedConfig() {
   setStatus("Generated OpenClaw config loaded into editor. Use Preview routes, then Save local config.");
 }
 
+async function previewBotChannel() {
+  const response = await fetch("/api/bot-channels/preview", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      channel: elements.botChannelSelect.value,
+      text: elements.botChannelText.value,
+    }),
+  });
+  const payload = await response.json();
+  if (!response.ok) {
+    setStatus(payload.error || "Bot channel preview failed.");
+    return;
+  }
+  renderBotChannelPreview(payload);
+  setStatus(`Bot channel dry-run ready: ${payload.channel}`);
+}
+
 function renderAll(options = {}) {
   const config = state.config;
   if (!config) return;
@@ -203,6 +239,31 @@ function renderOpenClawReport(report) {
   ].join("");
 }
 
+function renderBotChannels(payload) {
+  const channels = payload.channels || [];
+  const defaultChannel = payload.config.default_channel;
+  elements.botChannelBadge.textContent = payload.source || "example";
+  elements.botChannelSelect.innerHTML = channels
+    .map((channel) => `<option value="${escapeHtml(channel.name)}">${escapeHtml(channel.name)} · ${escapeHtml(channel.kind)}</option>`)
+    .join("");
+  elements.botChannelSelect.value = channels.find((channel) => channel.name === defaultChannel)?.name || channels[0]?.name || "";
+  elements.botChannelsList.innerHTML = channels
+    .map((channel) => {
+      const status = channel.enabled ? "enabled" : "disabled";
+      const caps = (channel.capabilities || []).join(", ") || "no capabilities";
+      return `<div class="item"><strong>${escapeHtml(channel.name)} · ${escapeHtml(channel.kind)}</strong><span>${escapeHtml(status)}</span><span>${escapeHtml(caps)}</span></div>`;
+    })
+    .join("");
+}
+
+function renderBotChannelPreview(payload) {
+  elements.botChannelPreview.innerHTML = [
+    `<div class="item"><strong>${escapeHtml(payload.channel)} · ${escapeHtml(payload.kind)}</strong><span>${escapeHtml(payload.method)} ${escapeHtml(payload.endpoint || "gateway/sdk")}</span></div>`,
+    `<div class="item"><strong>Payload</strong><span>${escapeHtml(JSON.stringify(payload.body))}</span></div>`,
+    `<div class="item"><strong>Notes</strong><span>${escapeHtml((payload.notes || []).join(" | "))}</span></div>`,
+  ].join("");
+}
+
 function applyControlsToConfig(config = state.config) {
   if (!config) return;
   config.mode = elements.modeSelect.value;
@@ -233,4 +294,5 @@ function escapeHtml(value) {
 }
 
 loadOpenClawDefaults();
+loadBotChannels();
 loadConfig();

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bot-channel-config.schema.json",
+  "title": "Bot Channel Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "mode",
+    "default_channel",
+    "channels"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "mock",
+        "live"
+      ]
+    },
+    "default_channel": {
+      "$ref": "./defs.schema.json#/$defs/Id"
+    },
+    "channels": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/BotChannel"
+      }
+    }
+  },
+  "$defs": {
+    "BotChannel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "enabled"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "telegram",
+            "whatsapp_cloud",
+            "feishu_webhook",
+            "qq_official",
+            "generic_webhook"
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "token_env": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "target_env": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "webhook_url_env": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "secret_env": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "phone_number_id_env": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "api_version_env": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "app_id_env": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "target_kind": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "capabilities": {
+          "$ref": "./defs.schema.json#/$defs/StringList"
+        }
+      }
+    }
+  }
+}

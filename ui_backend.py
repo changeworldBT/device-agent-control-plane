@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Mapping
 from urllib.parse import urlparse
 
+from channels.bot_gateway import load_active_bot_config, list_channels, send_or_preview
 from compat.openclaw_migration import DEFAULT_OPENCLAW_CONFIG, DEFAULT_OPENCLAW_WORKSPACE, migrate_openclaw
 from model.provider_config import resolve_model_route, validate_model_config
 
@@ -48,6 +49,16 @@ def dashboard_payload() -> dict[str, Any]:
     }
 
 
+def bot_channels_payload() -> dict[str, Any]:
+    config, source, path = load_active_bot_config()
+    return {
+        "source": source,
+        "path": str(path),
+        "config": config,
+        "channels": list_channels(config),
+    }
+
+
 def save_local_config(config: Mapping[str, Any]) -> dict[str, Any]:
     validate_model_config(config)
     LOCAL_CONFIG.parent.mkdir(parents=True, exist_ok=True)
@@ -72,6 +83,9 @@ def make_handler() -> type[BaseHTTPRequestHandler]:
             if parsed.path == "/api/openclaw/defaults":
                 self._send_json(200, openclaw_defaults())
                 return
+            if parsed.path == "/api/bot-channels":
+                self._send_json(200, bot_channels_payload())
+                return
             self._send_static(parsed.path)
 
         def do_POST(self) -> None:
@@ -89,6 +103,9 @@ def make_handler() -> type[BaseHTTPRequestHandler]:
                 return
             if parsed.path == "/api/openclaw/preview":
                 self._handle_openclaw_preview()
+                return
+            if parsed.path == "/api/bot-channels/preview":
+                self._handle_bot_channel_preview()
                 return
             self._send_json(404, {"error": "not found"})
 
@@ -111,6 +128,20 @@ def make_handler() -> type[BaseHTTPRequestHandler]:
                 workspace_path = Path(str(workspace_value)).expanduser() if workspace_value else None
                 report = migrate_openclaw(config_path=config_path, workspace_path=workspace_path)
                 self._send_json(200, report)
+            except Exception as exc:
+                self._send_json(400, {"error": str(exc)})
+
+        def _handle_bot_channel_preview(self) -> None:
+            try:
+                body = self._read_json_body()
+                config, _, _ = load_active_bot_config()
+                result = send_or_preview(
+                    config,
+                    text=str(body.get("text") or "Device Agent test message"),
+                    channel_name=str(body.get("channel") or config["default_channel"]),
+                    live=False,
+                )
+                self._send_json(200, result)
             except Exception as exc:
                 self._send_json(400, {"error": str(exc)})
 

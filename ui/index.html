@@ -107,6 +107,35 @@
           <div id="openclawReport" class="stack"></div>
         </article>
 
+        <article class="migration-card">
+          <div class="section-head compact">
+            <div>
+              <p class="eyebrow">Bot Channels</p>
+              <h2>Telegram, WhatsApp, QQ, Feishu</h2>
+            </div>
+            <span id="botChannelBadge" class="badge">dry-run</span>
+          </div>
+          <p class="migration-copy">
+            Mainstream bot channels share one preview gateway. Live credentials stay in environment
+            variables; QQ is treated as gateway/SDK-only until a dedicated adapter is added.
+          </p>
+          <div class="control-grid migration-grid">
+            <label>
+              Channel
+              <select id="botChannelSelect"></select>
+            </label>
+            <label>
+              Test message
+              <input id="botChannelText" type="text" value="Device Agent test message" />
+            </label>
+            <div class="migration-actions">
+              <button id="botChannelPreviewButton" type="button">Dry-run preview</button>
+            </div>
+          </div>
+          <div id="botChannelsList" class="stack"></div>
+          <div id="botChannelPreview" class="stack preview-stack"></div>
+        </article>
+
         <details class="json-box">
           <summary>Advanced JSON editor</summary>
           <textarea id="jsonEditor" spellcheck="false"></textarea>

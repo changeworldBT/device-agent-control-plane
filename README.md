@@ -12,6 +12,7 @@ Working today:
 - CLI welcome screen with a golden-dragon console banner.
 - Local visual UI for choosing CLI/UI mode, previewing provider routes, and editing model-provider config.
 - OpenClaw migration preview that maps OpenClaw agents/models/workspace evidence into candidate-only local config.
+- Bot channel configuration and preview dispatch for Telegram, WhatsApp Cloud API, Feishu/Lark custom webhooks, QQ official bots, and generic JSON webhooks.
 - Append-only event log and materialized state projector.
 - Task, node, fact, grant, approval, receipt, verification, and recovery semantics.
 - Replay execution for the built-in research and CRM fixtures.
@@ -28,6 +29,8 @@ Not finished:
 - General-purpose remote adapters beyond the validated mock HTTP CRM slice.
 - Browser automation.
 - Multi-agent orchestration beyond provider/team routing and the design/spec level.
+- Full inbound bot event handling. Current bot support is outbound text dispatch preview, with live send gated behind explicit local configuration.
+- Dedicated QQ official gateway/OpenAPI live adapter. QQ stays dry-run only until that adapter exists.
 - Packaging, installer, and end-user UX.
 
 ## Architecture
@@ -49,6 +52,8 @@ The design favors falsifiable behavior over broad claims. A path is considered p
 - `execution/`: Python local and mock HTTP execution adapters.
 - `scenarios/`: Python scenario runners and mock HTTP CRM server.
 - `config/model-providers.example.json`: example model-provider and agent-team routing config.
+- `config/bot-channels.example.json`: example mainstream bot-channel config.
+- `channels/`: Python bot-channel config loader and dispatch gateway.
 - `compat/`: compatibility import helpers, including OpenClaw migration.
 - `model/`: Python model-provider config loader and route resolver.
 - `ui/`: static local configuration UI.
@@ -103,10 +108,30 @@ Start from:
 
 ```powershell
 Copy-Item .\config\model-providers.example.json .\config\model-providers.local.json
+Copy-Item .\config\bot-channels.example.json .\config\bot-channels.local.json
 Copy-Item .\.env.example .\.env
 ```
 
 Use `.env` for local secrets and provider switches. Do not commit `.env` or `config/*.local.json`.
+
+## Bot Channel Configuration
+
+Bot channels are configured through `config/bot-channels.local.json`, with secrets referenced by environment variable names only. The checked-in example covers:
+- Telegram Bot API outbound text messages.
+- WhatsApp Cloud API outbound text messages.
+- Feishu/Lark custom bot webhooks. Signed webhook live send is blocked until signing is implemented.
+- QQ official bot config and dry-run preview. QQ is not treated as a generic webhook because its real integration needs a dedicated official gateway/OpenAPI adapter.
+- Generic JSON webhook fallback for simple internal integrations.
+
+Preview configured channels:
+
+```powershell
+python .\run_bot_channels.py --list
+python .\run_bot_channels.py --channel telegram_ops --text "hello from Device Agent"
+python .\run_bot_channels.py --channel qq_ops --text "dry-run only"
+```
+
+Live dispatch requires `mode` to be `live`, the channel to be enabled, and every referenced environment variable to be configured. Without `--live`, the command returns a redacted dry-run payload for CLI/UI inspection.
 
 ## Quick Start
 

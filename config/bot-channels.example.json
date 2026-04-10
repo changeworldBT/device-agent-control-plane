@@ -1,0 +1,59 @@
+{
+  "$schema": "../schemas/json-schema/bot-channel-config.schema.json",
+  "version": 1,
+  "mode": "mock",
+  "default_channel": "telegram_ops",
+  "channels": {
+    "telegram_ops": {
+      "kind": "telegram",
+      "enabled": true,
+      "token_env": "TELEGRAM_BOT_TOKEN",
+      "target_env": "TELEGRAM_CHAT_ID",
+      "capabilities": [
+        "send_text",
+        "webhook_inbound"
+      ]
+    },
+    "whatsapp_ops": {
+      "kind": "whatsapp_cloud",
+      "enabled": false,
+      "token_env": "WHATSAPP_ACCESS_TOKEN",
+      "target_env": "WHATSAPP_TO",
+      "phone_number_id_env": "WHATSAPP_PHONE_NUMBER_ID",
+      "api_version_env": "WHATSAPP_GRAPH_API_VERSION",
+      "capabilities": [
+        "send_text",
+        "webhook_inbound"
+      ]
+    },
+    "feishu_ops": {
+      "kind": "feishu_webhook",
+      "enabled": false,
+      "webhook_url_env": "FEISHU_BOT_WEBHOOK_URL",
+      "secret_env": "FEISHU_BOT_SECRET",
+      "capabilities": [
+        "send_text"
+      ]
+    },
+    "qq_ops": {
+      "kind": "qq_official",
+      "enabled": false,
+      "app_id_env": "QQ_BOT_APP_ID",
+      "token_env": "QQ_BOT_TOKEN",
+      "target_env": "QQ_BOT_TARGET_ID",
+      "target_kind": "guild_channel",
+      "capabilities": [
+        "send_text",
+        "gateway_inbound"
+      ]
+    },
+    "generic_webhook": {
+      "kind": "generic_webhook",
+      "enabled": false,
+      "webhook_url_env": "BOT_GENERIC_WEBHOOK_URL",
+      "capabilities": [
+        "send_text"
+      ]
+    }
+  }
+}

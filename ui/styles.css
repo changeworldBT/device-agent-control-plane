@@ -289,6 +289,10 @@ textarea {
   flex-wrap: wrap;
 }
 
+.preview-stack {
+  margin-top: 14px;
+}
+
 summary {
   cursor: pointer;
   color: var(--deep-gold);

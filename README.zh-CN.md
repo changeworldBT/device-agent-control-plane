@@ -12,6 +12,7 @@
 - 带金黄色龙形 banner 的 CLI 欢迎界面。
 - 本地可视化 UI，可选择 CLI/UI、预览 provider 路由，并编辑模型 provider 配置。
 - OpenClaw 迁移预览，可把 OpenClaw agents、模型和 workspace 证据映射成本地 candidate-only 配置。
+- Bot 渠道配置与预览 dispatch，覆盖 Telegram、WhatsApp Cloud API、飞书/Lark 自定义 webhook、QQ 官方 bot 和通用 JSON webhook。
 - 追加式事件日志和物化状态投影器。
 - 任务、节点、事实、授权、审批、回执、验证和恢复语义。
 - 内置 research 与 CRM fixture 的 replay 执行。
@@ -28,6 +29,8 @@
 - 超出已验证 mock HTTP CRM 切片的通用远程适配器。
 - 浏览器自动化。
 - 超出 provider/team 路由和设计/规格层面的多代理编排。
+- 完整的 bot 入站事件处理。当前 bot 支持范围是出站文本 dispatch 预览，真实发送必须显式启用本地配置。
+- QQ 官方 gateway/OpenAPI 的专用 live adapter。该适配器实现前，QQ 只做 dry-run，不会被错误当作普通 webhook。
 - 打包、安装器和终端用户 UX。
 
 ## 架构
@@ -49,6 +52,8 @@
 - `execution/`：Python 本地与 mock HTTP 执行适配器。
 - `scenarios/`：Python 场景 runner 和 mock HTTP CRM server。
 - `config/model-providers.example.json`：模型 provider 与 agent 团队路由配置示例。
+- `config/bot-channels.example.json`：主流 bot 渠道配置示例。
+- `channels/`：Python bot 渠道配置加载与 dispatch 网关。
 - `compat/`：兼容性导入工具，包括 OpenClaw 迁移。
 - `model/`：Python 模型 provider 配置加载与路由解析。
 - `ui/`：静态本地配置 UI。
@@ -103,10 +108,30 @@ python .\run_openclaw_migration.py --write-local-config --output .\config\model-
 
 ```powershell
 Copy-Item .\config\model-providers.example.json .\config\model-providers.local.json
+Copy-Item .\config\bot-channels.example.json .\config\bot-channels.local.json
 Copy-Item .\.env.example .\.env
 ```
 
 `.env` 用于本地密钥和 provider 切换。不要提交 `.env` 或 `config/*.local.json`。
+
+## Bot 渠道配置
+
+Bot 渠道通过 `config/bot-channels.local.json` 配置，密钥只引用环境变量名，不写入 JSON。当前示例覆盖：
+- Telegram Bot API 出站文本消息。
+- WhatsApp Cloud API 出站文本消息。
+- 飞书/Lark 自定义 bot webhook。带签名密钥的 webhook 在签名实现前会阻止 live 发送。
+- QQ 官方 bot 配置与 dry-run 预览。QQ 不会被当作通用 webhook，因为真实接入需要专用官方 gateway/OpenAPI adapter。
+- 通用 JSON webhook，用于简单内部集成。
+
+预览已配置渠道：
+
+```powershell
+python .\run_bot_channels.py --list
+python .\run_bot_channels.py --channel telegram_ops --text "hello from Device Agent"
+python .\run_bot_channels.py --channel qq_ops --text "dry-run only"
+```
+
+真实 dispatch 要求 `mode` 为 `live`、目标 channel 已启用，并且所有被引用的环境变量都已配置。不带 `--live` 时，命令只返回已脱敏的 dry-run payload，供 CLI/UI 检查。
 
 ## 快速开始
 

@@ -22,6 +22,7 @@ PAIRS = [
     ("json-schema/task-replay.schema.json", "examples/flows/research-brief-flow.json"),
     ("json-schema/task-replay.schema.json", "examples/flows/crm-followup-flow.json"),
     ("json-schema/model-config.schema.json", "../config/model-providers.example.json"),
+    ("json-schema/bot-channel-config.schema.json", "../config/bot-channels.example.json"),
 ]
 
 

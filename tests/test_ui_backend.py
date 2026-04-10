@@ -39,6 +39,7 @@ class UiBackendTests(unittest.TestCase):
         try:
             health = json.loads(urlopen(f"{base_url}/api/health", timeout=5).read().decode("utf-8"))
             config = json.loads(urlopen(f"{base_url}/api/config", timeout=5).read().decode("utf-8"))
+            channels = json.loads(urlopen(f"{base_url}/api/bot-channels", timeout=5).read().decode("utf-8"))
             index = urlopen(f"{base_url}/", timeout=5).read().decode("utf-8")
         finally:
             server.shutdown()
@@ -47,7 +48,30 @@ class UiBackendTests(unittest.TestCase):
 
         self.assertEqual(health["status"], "ok")
         self.assertIn("config", config)
+        self.assertTrue(any(channel["kind"] == "telegram" for channel in channels["channels"]))
         self.assertIn("Device Agent Console", index)
+
+    def test_ui_server_bot_channel_preview_redacts_token(self) -> None:
+        server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler())
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base_url = f"http://127.0.0.1:{server.server_port}"
+        request = Request(
+            f"{base_url}/api/bot-channels/preview",
+            data=b'{"channel":"telegram_ops","text":"hello"}',
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+
+        try:
+            preview = json.loads(urlopen(request, timeout=5).read().decode("utf-8"))
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+
+        self.assertEqual(preview["channel"], "telegram_ops")
+        self.assertTrue(preview["dry_run"])
 
     def test_ui_server_openclaw_preview_endpoint_reports_bad_path(self) -> None:
         server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler())
