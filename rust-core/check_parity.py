@@ -43,6 +43,16 @@ def main() -> int:
             [sys.executable, str(PROJECT_ROOT / "run_local_crm_compensation.py"), "--backend", "rust"],
             "local crm compensation summary",
         ),
+        (
+            [sys.executable, str(PROJECT_ROOT / "run_http_crm_scenario.py"), "--backend", "python"],
+            [sys.executable, str(PROJECT_ROOT / "run_http_crm_scenario.py"), "--backend", "rust"],
+            "http crm scenario summary",
+        ),
+        (
+            [sys.executable, str(PROJECT_ROOT / "run_http_crm_compensation.py"), "--backend", "python"],
+            [sys.executable, str(PROJECT_ROOT / "run_http_crm_compensation.py"), "--backend", "rust"],
+            "http crm compensation summary",
+        ),
     ]
 
     for python_command, rust_command, label in cases:
