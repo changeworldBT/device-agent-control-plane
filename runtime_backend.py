@@ -10,6 +10,11 @@ ROOT = Path(__file__).resolve().parent
 RUST_CORE = ROOT / "rust-core"
 
 
+def configured_rust_target() -> str | None:
+    value = os.environ.get("DEVICE_AGENT_RUST_TARGET", "").strip()
+    return value or None
+
+
 def candidate_cargo_paths() -> list[Path]:
     candidates: list[Path] = []
     program_files = Path("C:/Program Files")
@@ -34,11 +39,12 @@ def rust_backend_available() -> bool:
         return False
 
 
-def resolve_rust_sysroot_bin(cargo: Path | None = None, *, target: str = "x86_64-pc-windows-gnullvm") -> Path | None:
+def resolve_rust_sysroot_bin(cargo: Path | None = None, *, target: str | None = None) -> Path | None:
     resolved = cargo or resolve_cargo()
     rustc = resolved.parent / "rustc.exe"
     if not rustc.exists():
         rustc = Path("rustc")
+    effective_target = target or configured_rust_target() or "x86_64-pc-windows-gnullvm"
     probe_env = os.environ.copy()
     probe_env["PATH"] = str(resolved.parent) + os.pathsep + probe_env.get("PATH", "")
     completed = subprocess.run(
@@ -51,7 +57,7 @@ def resolve_rust_sysroot_bin(cargo: Path | None = None, *, target: str = "x86_64
     if completed.returncode != 0:
         return None
     sysroot = Path(completed.stdout.strip())
-    candidate = sysroot / "lib" / "rustlib" / target / "bin"
+    candidate = sysroot / "lib" / "rustlib" / effective_target / "bin"
     if candidate.exists():
         return candidate
     return None
@@ -78,6 +84,9 @@ def normalize_backend(requested: str) -> str:
 def run_rust_bin(bin_name: str, args: list[str] | None = None) -> int:
     cargo = resolve_cargo()
     command = [str(cargo), "run", "--quiet", "--bin", bin_name]
+    target = configured_rust_target()
+    if target:
+        command.extend(["--target", target])
     if args:
         command.extend(["--", *args])
     completed = subprocess.run(command, cwd=RUST_CORE, check=False, env=rust_env(cargo))
