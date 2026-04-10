@@ -1,0 +1,83 @@
+{
+  "$schema": "../schemas/json-schema/model-config.schema.json",
+  "version": 1,
+  "mode": "mock",
+  "default_provider": "local_mock",
+  "active_provider": "local_mock",
+  "providers": {
+    "local_mock": {
+      "kind": "mock",
+      "default_model": "mock-deterministic-v1",
+      "capabilities": [
+        "planner",
+        "classifier",
+        "summarizer",
+        "verifier"
+      ]
+    },
+    "primary_cloud": {
+      "kind": "openai_compatible",
+      "base_url_env": "DEVICE_AGENT_PRIMARY_BASE_URL",
+      "api_key_env": "DEVICE_AGENT_PRIMARY_API_KEY",
+      "default_model_env": "DEVICE_AGENT_PRIMARY_MODEL",
+      "capabilities": [
+        "planner",
+        "summarizer"
+      ]
+    },
+    "cheap_router": {
+      "kind": "openai_compatible",
+      "base_url_env": "DEVICE_AGENT_ROUTER_BASE_URL",
+      "api_key_env": "DEVICE_AGENT_ROUTER_API_KEY",
+      "default_model_env": "DEVICE_AGENT_ROUTER_MODEL",
+      "capabilities": [
+        "classifier",
+        "summarizer"
+      ]
+    }
+  },
+  "agents": {
+    "mode": "multi_agent",
+    "default_agent": "architect",
+    "role_map": {
+      "planner": "architect",
+      "classifier": "router",
+      "summarizer": "analyst",
+      "verifier": "auditor"
+    },
+    "members": {
+      "architect": {
+        "provider": "primary_cloud",
+        "model_env": "DEVICE_AGENT_PLANNER_MODEL",
+        "roles": [
+          "planner"
+        ],
+        "system_contract": "Return candidate plans only; never claim verified state or host authority."
+      },
+      "router": {
+        "provider": "local_mock",
+        "model": "mock-router-v1",
+        "roles": [
+          "classifier"
+        ],
+        "system_contract": "Classify task shape, risk, and routing hints only."
+      },
+      "analyst": {
+        "provider": "cheap_router",
+        "model_env": "DEVICE_AGENT_SMALL_MODEL",
+        "roles": [
+          "summarizer"
+        ],
+        "system_contract": "Summarize bounded evidence without promoting candidate facts."
+      },
+      "auditor": {
+        "provider": "local_mock",
+        "model": "mock-verifier-v1",
+        "roles": [
+          "verifier"
+        ],
+        "system_contract": "Check evidence and emit candidate verification judgments only."
+      }
+    }
+  }
+}

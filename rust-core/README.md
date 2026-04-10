@@ -3,6 +3,7 @@
 Rust implementation of the control-plane semantics first proven in the Python oracle runtime.
 
 Scope:
+- golden-dragon CLI welcome banner
 - append-only event log
 - materialized state projector
 - fact time and freshness semantics
@@ -13,12 +14,14 @@ Scope:
 - local workspace adapter
 - local CRM scenario runner
 - mock HTTP CRM adapter and scenario runner
+- model provider config parser and route resolver
 - CLI bins for replay, local CRM, and mock HTTP CRM scenarios
 
 Non-goals in this phase:
 - expanding product scope beyond the current control-plane slice
 - removing the Python oracle or parity checks
 - adding browser or broader remote adapters beyond the validated mock HTTP slice
+- making live LLM provider API calls from the Rust core
 
 Local status:
 - the crate compiles under the installed GNU/LLVM Rust bundle
@@ -26,6 +29,7 @@ Local status:
 - replay execution matches the Python oracle for the built-in fixtures
 - local workspace and CRM compensation scenarios run with real filesystem side effects
 - mock HTTP CRM and compensation scenarios run against a local in-process HTTP server
+- model provider config resolves multi-provider defaults, provider overrides, and single/multi-agent team routing
 - top-level Python entrypoints default to Rust when available and can still be forced to Python
 
 Reference implementation used to derive semantics:

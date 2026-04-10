@@ -1,7 +1,9 @@
 use serde_json::json;
 
 use crate::approval_guard::{approval_required, has_active_approval};
-use crate::contracts::{FactStatus, NodeState, RiskBand, SelectionDecision, Task, TaskNode, Timestamp};
+use crate::contracts::{
+    FactStatus, NodeState, RiskBand, SelectionDecision, Task, TaskNode, Timestamp,
+};
 use crate::projector::MaterializedState;
 use crate::task_guard::is_terminal;
 
@@ -50,7 +52,11 @@ fn surface_cost(surface: &str) -> f64 {
     }
 }
 
-pub fn composite_risk_score(node: &TaskNode, task: &Task, state: &MaterializedState) -> (f64, serde_json::Value) {
+pub fn composite_risk_score(
+    node: &TaskNode,
+    task: &Task,
+    state: &MaterializedState,
+) -> (f64, serde_json::Value) {
     let action_surface_cost = surface_cost(surface_from_node_type(&node.node_type));
     let target_sensitivity_cost = if ["sensitive", "crm", "commit"]
         .iter()
@@ -60,7 +66,11 @@ pub fn composite_risk_score(node: &TaskNode, task: &Task, state: &MaterializedSt
     } else {
         0.5
     };
-    let context_cost = if task.attention_budget.must_confirm_before_commit { 1.0 } else { 0.0 };
+    let context_cost = if task.attention_budget.must_confirm_before_commit {
+        1.0
+    } else {
+        0.0
+    };
     let sequence_cost = 0.5
         * state
             .nodes
@@ -68,7 +78,11 @@ pub fn composite_risk_score(node: &TaskNode, task: &Task, state: &MaterializedSt
             .filter(|peer| peer.task_id == task.task_id && peer.state == NodeState::Completed)
             .count() as f64;
     let base_band_cost = risk_cost(&node.risk_class);
-    let total = base_band_cost + action_surface_cost + target_sensitivity_cost + context_cost + sequence_cost;
+    let total = base_band_cost
+        + action_surface_cost
+        + target_sensitivity_cost
+        + context_cost
+        + sequence_cost;
     (
         total,
         json!({
@@ -91,7 +105,11 @@ fn dependencies_satisfied(node: &TaskNode, state: &MaterializedState) -> bool {
     })
 }
 
-fn candidate_score(node: &TaskNode, state: &MaterializedState, max_interruptions: u32) -> Option<(f64, serde_json::Value)> {
+fn candidate_score(
+    node: &TaskNode,
+    state: &MaterializedState,
+    max_interruptions: u32,
+) -> Option<(f64, serde_json::Value)> {
     let interruption_cost = attention_cost(&node.risk_class);
     if interruption_cost > max_interruptions {
         return None;
@@ -106,15 +124,25 @@ fn candidate_score(node: &TaskNode, state: &MaterializedState, max_interruptions
         .count();
     let verification_bonus = (verified_facts as f64 * 0.1).min(0.5);
     let freshness_bonus = 1.0;
-    let dependency_penalty = if dependencies_satisfied(node, state) { 0.0 } else { 10.0 };
-    let ready_bonus = if node.state == NodeState::Ready { 0.5 } else { 0.0 };
+    let dependency_penalty = if dependencies_satisfied(node, state) {
+        0.0
+    } else {
+        10.0
+    };
+    let ready_bonus = if node.state == NodeState::Ready {
+        0.5
+    } else {
+        0.0
+    };
     let approval_needed = approval_required(node, task, Some(composite_score));
     let approval_present = has_active_approval(&state.approvals, &task.task_id, &node.node_id);
     if approval_needed && !approval_present {
         return None;
     }
 
-    let score = 5.0 + ready_bonus + freshness_bonus + verification_bonus - composite_score - dependency_penalty;
+    let score = 5.0 + ready_bonus + freshness_bonus + verification_bonus
+        - composite_score
+        - dependency_penalty;
     Some((
         score,
         json!({
@@ -131,7 +159,11 @@ fn candidate_score(node: &TaskNode, state: &MaterializedState, max_interruptions
     ))
 }
 
-pub fn select_next_node(state: &MaterializedState, task: &Task, _at_time: Timestamp) -> SelectionDecision {
+pub fn select_next_node(
+    state: &MaterializedState,
+    task: &Task,
+    _at_time: Timestamp,
+) -> SelectionDecision {
     let max_interruptions = task.attention_budget.max_interruptions;
     let mut candidates: Vec<(String, f64, serde_json::Value)> = state
         .nodes
@@ -141,7 +173,8 @@ pub fn select_next_node(state: &MaterializedState, task: &Task, _at_time: Timest
         .filter(|node| matches!(node.state, NodeState::Created | NodeState::Ready))
         .filter(|node| dependencies_satisfied(node, state))
         .filter_map(|node| {
-            candidate_score(node, state, max_interruptions).map(|(score, rationale)| (node.node_id.clone(), score, rationale))
+            candidate_score(node, state, max_interruptions)
+                .map(|(score, rationale)| (node.node_id.clone(), score, rationale))
         })
         .collect();
 

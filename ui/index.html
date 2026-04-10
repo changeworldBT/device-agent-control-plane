@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Device Agent Console</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero panel">
+        <div class="hero-copy">
+          <p class="eyebrow">Device Agent Control Plane</p>
+          <h1>Choose a surface. Keep authority local.</h1>
+          <p class="lede">
+            A compact cockpit for switching between CLI work and visual model-provider configuration.
+          </p>
+          <div class="surface-switch" role="tablist" aria-label="Interface mode">
+            <button class="surface active" data-panel="uiPanel" type="button">UI</button>
+            <button class="surface" data-panel="cliPanel" type="button">CLI</button>
+          </div>
+        </div>
+        <pre class="dragon" aria-label="Golden dragon">
+      / \  //\
+ |\___/| /   \//  \\
+ /0  0  \__  //  | \ \
+ @_^_@'   \/_//  |  \ \
+   V|      \///  |   \ \
+    |  ___ //    |    \ \
+   _| /   //     |     \_\
+ .-~_/   ((      |        )
+         \\\\_.-~` `~</pre>
+      </section>
+
+      <section id="uiPanel" class="workspace panel mode-panel">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Visual Config</p>
+            <h2>Provider and agent routing</h2>
+          </div>
+          <span id="sourceBadge" class="badge">loading</span>
+        </div>
+
+        <div class="control-grid">
+          <label>
+            Model mode
+            <select id="modeSelect">
+              <option value="off">off</option>
+              <option value="mock">mock</option>
+              <option value="live">live</option>
+            </select>
+          </label>
+          <label>
+            Agent mode
+            <select id="agentModeSelect">
+              <option value="single_agent">single_agent</option>
+              <option value="multi_agent">multi_agent</option>
+            </select>
+          </label>
+          <label>
+            Active provider
+            <select id="providerSelect"></select>
+          </label>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <div class="card-title">Providers</div>
+            <div id="providersList" class="stack"></div>
+          </article>
+          <article class="card">
+            <div class="card-title">Agent Team</div>
+            <div id="agentsList" class="stack"></div>
+          </article>
+          <article class="card route-card">
+            <div class="card-title">Route Preview</div>
+            <div id="routesList" class="stack"></div>
+          </article>
+        </div>
+
+        <article class="migration-card">
+          <div class="section-head compact">
+            <div>
+              <p class="eyebrow">OpenClaw Migration</p>
+              <h2>Smooth import, candidate-only by default</h2>
+            </div>
+            <span class="badge">dry-run</span>
+          </div>
+          <p class="migration-copy">
+            Reads OpenClaw JSON5-style config and workspace evidence, skips credentials/sessions, and
+            produces a reviewed local config draft.
+          </p>
+          <div class="control-grid migration-grid">
+            <label>
+              OpenClaw config
+              <input id="openclawConfigPath" type="text" />
+            </label>
+            <label>
+              Workspace override
+              <input id="openclawWorkspacePath" type="text" />
+            </label>
+            <div class="migration-actions">
+              <button id="openclawPreviewButton" type="button">Preview migration</button>
+              <button id="openclawApplyButton" type="button">Load generated config into editor</button>
+            </div>
+          </div>
+          <div id="openclawReport" class="stack"></div>
+        </article>
+
+        <details class="json-box">
+          <summary>Advanced JSON editor</summary>
+          <textarea id="jsonEditor" spellcheck="false"></textarea>
+        </details>
+
+        <div class="actions">
+          <button id="reloadButton" type="button">Reload</button>
+          <button id="previewButton" type="button">Preview routes</button>
+          <button id="saveButton" class="primary" type="button">Save local config</button>
+        </div>
+        <p id="statusLine" class="status">Loading configuration...</p>
+      </section>
+
+      <section id="cliPanel" class="workspace panel mode-panel hidden">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">CLI Surface</p>
+            <h2>Machine-readable commands stay clean</h2>
+          </div>
+          <span class="badge">JSON safe</span>
+        </div>
+        <div class="terminal">
+          <code>python .\run_welcome.py</code>
+          <code>python .\run_replays.py --backend rust</code>
+          <code>python .\run_http_crm_scenario.py --backend rust</code>
+          <code>python .\run_device_agent.py --interface ui</code>
+        </div>
+      </section>
+    </main>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

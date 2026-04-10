@@ -10,10 +10,14 @@ pub fn approval_required(node: &TaskNode, task: &Task, composite_risk_score: Opt
     if node.node_type.starts_with("commit_") {
         return true;
     }
-    if task.attention_budget.must_confirm_before_commit && matches!(node.risk_class, RiskBand::R2 | RiskBand::R3) {
+    if task.attention_budget.must_confirm_before_commit
+        && matches!(node.risk_class, RiskBand::R2 | RiskBand::R3)
+    {
         return true;
     }
-    composite_risk_score.map(|score| score >= 4.0).unwrap_or(false)
+    composite_risk_score
+        .map(|score| score >= 4.0)
+        .unwrap_or(false)
 }
 
 pub fn has_active_approval(
@@ -21,9 +25,9 @@ pub fn has_active_approval(
     task_id: &str,
     node_id: &str,
 ) -> bool {
-    approvals
-        .values()
-        .any(|approval| approval.task_id == task_id && approval.node_id == node_id && approval.status == "approved")
+    approvals.values().any(|approval| {
+        approval.task_id == task_id && approval.node_id == node_id && approval.status == "approved"
+    })
 }
 
 pub fn ensure_approval_for_grant(

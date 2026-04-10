@@ -6,7 +6,8 @@ pub fn effective_valid_until(fact: &FactRecord) -> Option<Timestamp> {
     if let Some(valid_until) = fact.valid_until {
         return Some(valid_until);
     }
-    fact.ttl.map(|seconds| fact.observed_at + Duration::seconds(seconds))
+    fact.ttl
+        .map(|seconds| fact.observed_at + Duration::seconds(seconds))
 }
 
 pub fn is_fact_expired(fact: &FactRecord, as_of: Timestamp) -> bool {

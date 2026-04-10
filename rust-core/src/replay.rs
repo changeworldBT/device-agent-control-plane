@@ -4,9 +4,11 @@ use std::path::{Path, PathBuf};
 use chrono::Duration;
 use serde_json::{json, Value};
 
-use crate::contracts::{ReplayFixture, SelectionDecision};
 use crate::approval_guard::ensure_approval_for_grant;
-use crate::contracts::{CapabilityGrant, EventEnvelope, NodeState, ReplayStep, RiskBand, Timestamp};
+use crate::contracts::{
+    CapabilityGrant, EventEnvelope, NodeState, ReplayStep, RiskBand, Timestamp,
+};
+use crate::contracts::{ReplayFixture, SelectionDecision};
 use crate::error::{CoreError, CoreResult};
 use crate::event_log::EventLog;
 use crate::projector::{EventProjector, MaterializedState};
@@ -88,7 +90,13 @@ impl ReplayRunner {
     fn run_step(&mut self, step: &ReplayStep) -> CoreResult<()> {
         if step.command == "task.create" {
             if !self.projector.state.tasks.contains_key(&self.task_id()) {
-                self.emit_event(step.step, "task.created", self.build_task_created_payload(), &step.node_id, "taskcreate")?;
+                self.emit_event(
+                    step.step,
+                    "task.created",
+                    self.build_task_created_payload(),
+                    &step.node_id,
+                    "taskcreate",
+                )?;
             }
             let explicit_ready = step
                 .events
@@ -184,7 +192,11 @@ impl ReplayRunner {
 
     fn record_selection_snapshot(&mut self, step: &ReplayStep) {
         if let Some(task) = self.projector.state.tasks.get(&self.task_id()) {
-            let mut selection = select_next_node(&self.projector.state, task, self.time_for_step(step.step, 0));
+            let mut selection = select_next_node(
+                &self.projector.state,
+                task,
+                self.time_for_step(step.step, 0),
+            );
             let rationale = json!({
                 "before_step": step.step,
                 "expected_node": step.node_id,
@@ -195,7 +207,12 @@ impl ReplayRunner {
         }
     }
 
-    fn ensure_node_ready(&mut self, step_number: u32, node_id: &str, explicit_transition_present: bool) -> CoreResult<()> {
+    fn ensure_node_ready(
+        &mut self,
+        step_number: u32,
+        node_id: &str,
+        explicit_transition_present: bool,
+    ) -> CoreResult<()> {
         let node = match self.projector.state.nodes.get(node_id) {
             Some(node) => node,
             None => return Ok(()),
@@ -220,7 +237,13 @@ impl ReplayRunner {
 
     fn emit_token(&mut self, step: &ReplayStep, token: &str, token_index: usize) -> CoreResult<()> {
         match token {
-            "task.created" => self.emit_event(step.step, token, self.build_task_created_payload(), &step.node_id, &format!("{token_index}-task")),
+            "task.created" => self.emit_event(
+                step.step,
+                token,
+                self.build_task_created_payload(),
+                &step.node_id,
+                &format!("{token_index}-task"),
+            ),
             "grant.issued" => self.emit_event(
                 step.step,
                 token,
@@ -265,7 +288,11 @@ impl ReplayRunner {
                 )
             }
             "verification.recorded" => {
-                for (fact_index, fact) in self.build_candidate_facts(step, token_index).into_iter().enumerate() {
+                for (fact_index, fact) in self
+                    .build_candidate_facts(step, token_index)
+                    .into_iter()
+                    .enumerate()
+                {
                     self.emit_event(
                         step.step,
                         "fact.observed",
@@ -316,7 +343,12 @@ impl ReplayRunner {
 
     fn build_approval(&self, step: &ReplayStep, token_index: usize) -> Value {
         let occurred_at = self.time_for_step(step.step, token_index);
-        let node = self.projector.state.nodes.get(&step.node_id).expect("node present");
+        let node = self
+            .projector
+            .state
+            .nodes
+            .get(&step.node_id)
+            .expect("node present");
         json!({
             "approval_id": format!("approval_{}_{}_{}", self.fixture.replay_id, step.node_id, step.step),
             "task_id": self.task_id(),
@@ -357,7 +389,11 @@ impl ReplayRunner {
         Ok(())
     }
 
-    fn restore_node_ready_after_approval(&mut self, step_number: u32, node_id: &str) -> CoreResult<()> {
+    fn restore_node_ready_after_approval(
+        &mut self,
+        step_number: u32,
+        node_id: &str,
+    ) -> CoreResult<()> {
         if self
             .projector
             .state
@@ -385,8 +421,18 @@ impl ReplayRunner {
 
     fn build_grant(&self, step: &ReplayStep, token_index: usize) -> CoreResult<CapabilityGrant> {
         let occurred_at = self.time_for_step(step.step, token_index);
-        let node = self.projector.state.nodes.get(&step.node_id).expect("node present");
-        let task = self.projector.state.tasks.get(&self.task_id()).expect("task present");
+        let node = self
+            .projector
+            .state
+            .nodes
+            .get(&step.node_id)
+            .expect("node present");
+        let task = self
+            .projector
+            .state
+            .tasks
+            .get(&self.task_id())
+            .expect("task present");
         ensure_approval_for_grant(&self.projector.state.approvals, node, task, None)?;
         let grant: CapabilityGrant = serde_json::from_value(json!({
             "grant_id": format!("grant_{}_{}_{}", self.fixture.replay_id, step.node_id, step.step),
@@ -416,7 +462,12 @@ impl ReplayRunner {
 
     fn build_action_spec(&mut self, step: &ReplayStep, token_index: usize) -> Value {
         let occurred_at = self.time_for_step(step.step, token_index);
-        let node = self.projector.state.nodes.get(&step.node_id).expect("node present");
+        let node = self
+            .projector
+            .state
+            .nodes
+            .get(&step.node_id)
+            .expect("node present");
         let mut action_spec = json!({
             "action_id": format!("action_{}_{}_{}", self.fixture.replay_id, step.node_id, step.step),
             "task_id": self.task_id(),
@@ -425,13 +476,20 @@ impl ReplayRunner {
             "occurred_at": occurred_at.to_rfc3339(),
         });
         if matches!(node.risk_class, RiskBand::R3) || node.node_type.starts_with("commit_") {
-            action_spec["compensation_policy_ref"] = json!(format!("compensate_{}_{}", self.fixture.replay_id, step.node_id));
+            action_spec["compensation_policy_ref"] = json!(format!(
+                "compensate_{}_{}",
+                self.fixture.replay_id, step.node_id
+            ));
             action_spec["side_effect_class"] = json!("irreversible_external_send");
         } else if matches!(node.risk_class, RiskBand::R2) {
-            action_spec["compensation_policy_ref"] = json!(format!("rollback_{}_{}", self.fixture.replay_id, step.node_id));
+            action_spec["compensation_policy_ref"] = json!(format!(
+                "rollback_{}_{}",
+                self.fixture.replay_id, step.node_id
+            ));
             action_spec["side_effect_class"] = json!("bounded_external_modify");
         }
-        self.action_specs.insert(step.node_id.clone(), action_spec.clone());
+        self.action_specs
+            .insert(step.node_id.clone(), action_spec.clone());
         action_spec
     }
 
@@ -581,7 +639,11 @@ impl ReplayRunner {
 
     fn build_recovery(&self, step: &ReplayStep, token_index: usize) -> Value {
         let occurred_at = self.time_for_step(step.step, token_index);
-        let action_spec = self.action_specs.get(&step.node_id).cloned().unwrap_or_default();
+        let action_spec = self
+            .action_specs
+            .get(&step.node_id)
+            .cloned()
+            .unwrap_or_default();
         let action = if action_spec
             .get("side_effect_class")
             .and_then(|value| value.as_str())
@@ -625,7 +687,11 @@ impl ReplayRunner {
             task_id: self.task_id(),
             node_id: node_id.to_owned(),
             trace_ref: self.fixture.replay_id.clone(),
-            causation_ref: self.event_log.as_slice().last().map(|event| event.event_id.clone()),
+            causation_ref: self
+                .event_log
+                .as_slice()
+                .last()
+                .map(|event| event.event_id.clone()),
             correlation_ref: Some(self.fixture.replay_id.clone()),
         };
         if self.event_log.append(event.clone())? {
@@ -657,7 +723,8 @@ fn base_time() -> Timestamp {
 }
 
 pub fn load_replay(path: impl AsRef<Path>) -> CoreResult<ReplayFixture> {
-    let raw = std::fs::read_to_string(path.as_ref()).map_err(|error| CoreError::Serialization(error.to_string()))?;
+    let raw = std::fs::read_to_string(path.as_ref())
+        .map_err(|error| CoreError::Serialization(error.to_string()))?;
     let mut fixture: ReplayFixture =
         serde_json::from_str(&raw).map_err(|error| CoreError::Serialization(error.to_string()))?;
     fixture.timeline.sort_by_key(|step| step.step);

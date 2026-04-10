@@ -5,7 +5,9 @@ use chrono::Duration;
 use serde_json::{json, Value};
 
 use crate::approval_guard::ensure_approval_for_grant;
-use crate::contracts::{CapabilityGrant, EventEnvelope, NodeState, RecoveryStatus, ReplayFixture, TaskNode, Timestamp};
+use crate::contracts::{
+    CapabilityGrant, EventEnvelope, NodeState, RecoveryStatus, ReplayFixture, TaskNode, Timestamp,
+};
 use crate::error::{CoreError, CoreResult};
 use crate::event_log::EventLog;
 use crate::projector::{EventProjector, MaterializedState};
@@ -67,7 +69,8 @@ impl LocalCrmScenarioRunner {
             .collect::<Vec<_>>();
 
         for (index, recovery) in armed.iter().enumerate() {
-            let occurred_at = base_time() + Duration::minutes(20) + Duration::seconds((index + 1) as i64);
+            let occurred_at =
+                base_time() + Duration::minutes(20) + Duration::seconds((index + 1) as i64);
             let outcome = self.adapter.execute_recovery(recovery, occurred_at)?;
             self.emit_event(
                 90 + (index as u32) + 1,
@@ -99,7 +102,13 @@ impl LocalCrmScenarioRunner {
     }
 
     fn run_steps(&mut self) -> CoreResult<()> {
-        self.emit_event(0, "task.created", self.build_task_created_payload(), &self.root_node_id(), "bootstrap")?;
+        self.emit_event(
+            0,
+            "task.created",
+            self.build_task_created_payload(),
+            &self.root_node_id(),
+            "bootstrap",
+        )?;
         let timeline = self.fixture.timeline.clone();
         for step in timeline {
             self.ensure_node_ready(step.step, &step.node_id)?;
@@ -110,7 +119,12 @@ impl LocalCrmScenarioRunner {
         Ok(())
     }
 
-    fn emit_token(&mut self, step: &crate::contracts::ReplayStep, token: &str, token_index: usize) -> CoreResult<()> {
+    fn emit_token(
+        &mut self,
+        step: &crate::contracts::ReplayStep,
+        token: &str,
+        token_index: usize,
+    ) -> CoreResult<()> {
         match token {
             "grant.issued" => {
                 let grant = self.build_grant(step, token_index)?;
@@ -323,7 +337,11 @@ impl LocalCrmScenarioRunner {
         Ok(())
     }
 
-    fn restore_node_ready_after_approval(&mut self, step_number: u32, node_id: &str) -> CoreResult<()> {
+    fn restore_node_ready_after_approval(
+        &mut self,
+        step_number: u32,
+        node_id: &str,
+    ) -> CoreResult<()> {
         if self
             .projector
             .state
@@ -351,7 +369,12 @@ impl LocalCrmScenarioRunner {
 
     fn build_approval(&self, step: &crate::contracts::ReplayStep, token_index: usize) -> Value {
         let occurred_at = self.time_for_step(step.step, token_index);
-        let node = self.projector.state.nodes.get(&step.node_id).expect("node present");
+        let node = self
+            .projector
+            .state
+            .nodes
+            .get(&step.node_id)
+            .expect("node present");
         json!({
             "approval_id": format!("approval_{}_{}_{}", self.fixture.replay_id, step.node_id, step.step),
             "task_id": self.task_id(),
@@ -366,10 +389,24 @@ impl LocalCrmScenarioRunner {
         })
     }
 
-    fn build_grant(&self, step: &crate::contracts::ReplayStep, token_index: usize) -> CoreResult<CapabilityGrant> {
+    fn build_grant(
+        &self,
+        step: &crate::contracts::ReplayStep,
+        token_index: usize,
+    ) -> CoreResult<CapabilityGrant> {
         let occurred_at = self.time_for_step(step.step, token_index);
-        let node = self.projector.state.nodes.get(&step.node_id).expect("node present");
-        let task = self.projector.state.tasks.get(&self.task_id()).expect("task present");
+        let node = self
+            .projector
+            .state
+            .nodes
+            .get(&step.node_id)
+            .expect("node present");
+        let task = self
+            .projector
+            .state
+            .tasks
+            .get(&self.task_id())
+            .expect("task present");
         ensure_approval_for_grant(&self.projector.state.approvals, node, task, None)?;
         serde_json::from_value(json!({
             "grant_id": format!("grant_{}_{}_{}", self.fixture.replay_id, step.node_id, step.step),
@@ -396,17 +433,30 @@ impl LocalCrmScenarioRunner {
         .map_err(|error| CoreError::Serialization(error.to_string()))
     }
 
-    fn build_receipt(&mut self, step: &crate::contracts::ReplayStep, token_index: usize) -> CoreResult<Value> {
+    fn build_receipt(
+        &mut self,
+        step: &crate::contracts::ReplayStep,
+        token_index: usize,
+    ) -> CoreResult<Value> {
         let outcome = self.execution_outcome(step, token_index)?;
-        serde_json::to_value(outcome.receipt.clone()).map_err(|error| CoreError::Serialization(error.to_string()))
+        serde_json::to_value(outcome.receipt.clone())
+            .map_err(|error| CoreError::Serialization(error.to_string()))
     }
 
-    fn pending_facts(&mut self, step: &crate::contracts::ReplayStep, token_index: usize) -> CoreResult<Vec<Value>> {
+    fn pending_facts(
+        &mut self,
+        step: &crate::contracts::ReplayStep,
+        token_index: usize,
+    ) -> CoreResult<Vec<Value>> {
         let outcome = self.execution_outcome(step, token_index)?;
         Ok(outcome.fact_candidates.clone())
     }
 
-    fn build_verification(&self, step: &crate::contracts::ReplayStep, token_index: usize) -> CoreResult<Value> {
+    fn build_verification(
+        &self,
+        step: &crate::contracts::ReplayStep,
+        token_index: usize,
+    ) -> CoreResult<Value> {
         let occurred_at = self.time_for_step(step.step, token_index);
         let node = self
             .fixture
@@ -428,20 +478,19 @@ impl LocalCrmScenarioRunner {
         {
             supporting_evidence.extend(last_receipt.artifact_refs.clone());
         }
-        let target_state = if step
-            .events
-            .iter()
-            .any(|token| token.starts_with("node.state_changed(") && token.contains("->completed"))
-        {
-            self.projector
-                .state
-                .nodes
-                .get(&step.node_id)
-                .map(|node| node.state.clone())
-                .unwrap_or(NodeState::Completed)
-        } else {
-            node.expected_terminal.clone()
-        };
+        let target_state =
+            if step.events.iter().any(|token| {
+                token.starts_with("node.state_changed(") && token.contains("->completed")
+            }) {
+                self.projector
+                    .state
+                    .nodes
+                    .get(&step.node_id)
+                    .map(|node| node.state.clone())
+                    .unwrap_or(NodeState::Completed)
+            } else {
+                node.expected_terminal.clone()
+            };
         let fact_promotions = if node.node_type == "observe_sensitive_record" {
             vec![format!("fact_{}_baseline", step.node_id)]
         } else {
@@ -465,7 +514,11 @@ impl LocalCrmScenarioRunner {
         }))
     }
 
-    fn build_recovery(&mut self, step: &crate::contracts::ReplayStep, token_index: usize) -> CoreResult<Value> {
+    fn build_recovery(
+        &mut self,
+        step: &crate::contracts::ReplayStep,
+        token_index: usize,
+    ) -> CoreResult<Value> {
         let occurred_at = self.time_for_step(step.step, token_index);
         let outcome = self.execution_outcome(step, token_index)?;
         let recovery = outcome
@@ -490,7 +543,12 @@ impl LocalCrmScenarioRunner {
     ) -> CoreResult<&WorkspaceExecutionOutcome> {
         if !self.execution_cache.contains_key(&step.node_id) {
             let occurred_at = self.time_for_step(step.step, token_index);
-            let node = self.projector.state.nodes.get(&step.node_id).expect("node present");
+            let node = self
+                .projector
+                .state
+                .nodes
+                .get(&step.node_id)
+                .expect("node present");
             let grant = self
                 .projector
                 .state
@@ -508,7 +566,9 @@ impl LocalCrmScenarioRunner {
                 "required_capability": self.required_capability(&step.node_id),
                 "side_effect_class": self.side_effect_class(node),
             });
-            let outcome = self.adapter.execute_node(node, &action_spec, &grant, occurred_at)?;
+            let outcome = self
+                .adapter
+                .execute_node(node, &action_spec, &grant, occurred_at)?;
             self.execution_cache.insert(step.node_id.clone(), outcome);
         }
         self.execution_cache
@@ -533,7 +593,11 @@ impl LocalCrmScenarioRunner {
             task_id: self.task_id(),
             node_id: node_id.to_owned(),
             trace_ref: self.fixture.replay_id.clone(),
-            causation_ref: self.event_log.as_slice().last().map(|event| event.event_id.clone()),
+            causation_ref: self
+                .event_log
+                .as_slice()
+                .last()
+                .map(|event| event.event_id.clone()),
             correlation_ref: Some(self.fixture.replay_id.clone()),
         };
         if self.event_log.append(event.clone())? {
@@ -553,7 +617,9 @@ impl LocalCrmScenarioRunner {
     }
 
     fn side_effect_class(&self, node: &TaskNode) -> &'static str {
-        if node.node_type.starts_with("commit_") || matches!(node.risk_class, crate::contracts::RiskBand::R3) {
+        if node.node_type.starts_with("commit_")
+            || matches!(node.risk_class, crate::contracts::RiskBand::R3)
+        {
             "irreversible_external_send"
         } else if matches!(node.risk_class, crate::contracts::RiskBand::R2) {
             "bounded_external_modify"
@@ -579,7 +645,10 @@ impl LocalCrmScenarioRunner {
     }
 }
 
-pub fn run_local_crm_scenario(seed_dir: impl AsRef<Path>, runtime_dir: impl AsRef<Path>) -> CoreResult<LocalCrmScenarioResult> {
+pub fn run_local_crm_scenario(
+    seed_dir: impl AsRef<Path>,
+    runtime_dir: impl AsRef<Path>,
+) -> CoreResult<LocalCrmScenarioResult> {
     LocalCrmScenarioRunner::new(seed_dir, runtime_dir)?.run()
 }
 

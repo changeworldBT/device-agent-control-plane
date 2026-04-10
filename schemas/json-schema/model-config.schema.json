@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "model-config.schema.json",
+  "title": "Model Provider Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "mode",
+    "default_provider",
+    "providers",
+    "agents"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "off",
+        "mock",
+        "live"
+      ]
+    },
+    "default_provider": {
+      "$ref": "./defs.schema.json#/$defs/Id"
+    },
+    "active_provider": {
+      "$ref": "./defs.schema.json#/$defs/Id"
+    },
+    "providers": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/Provider"
+      }
+    },
+    "agents": {
+      "$ref": "#/$defs/AgentTeam"
+    }
+  },
+  "$defs": {
+    "Provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "base_url_env": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "api_key_env": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "default_model": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "default_model_env": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "capabilities": {
+          "$ref": "./defs.schema.json#/$defs/StringList"
+        }
+      }
+    },
+    "AgentTeam": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "members"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "single_agent",
+            "multi_agent"
+          ]
+        },
+        "default_agent": {
+          "$ref": "./defs.schema.json#/$defs/Id"
+        },
+        "role_map": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "./defs.schema.json#/$defs/Id"
+          }
+        },
+        "members": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/AgentMember"
+          }
+        }
+      }
+    },
+    "AgentMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "$ref": "./defs.schema.json#/$defs/Id"
+        },
+        "model": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "model_env": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        },
+        "roles": {
+          "$ref": "./defs.schema.json#/$defs/StringList"
+        },
+        "system_contract": {
+          "$ref": "./defs.schema.json#/$defs/NonEmptyString"
+        }
+      }
+    }
+  }
+}

@@ -4,8 +4,8 @@ use serde::Deserialize;
 use serde_json::Value;
 
 use crate::contracts::{
-    ApprovalRecord, CapabilityGrant, EventEnvelope, ExecutionReceipt, FactRecord, NodeState, RecoveryRecord, Task,
-    TaskNode, Timestamp, VerificationResult,
+    ApprovalRecord, CapabilityGrant, EventEnvelope, ExecutionReceipt, FactRecord, NodeState,
+    RecoveryRecord, Task, TaskNode, Timestamp, VerificationResult,
 };
 use crate::error::{CoreError, CoreResult};
 use crate::fact_semantics::materialize_fact_status;
@@ -51,7 +51,11 @@ impl EventProjector {
         Self::default()
     }
 
-    pub fn rebuild(&mut self, events: &[EventEnvelope], as_of: Option<Timestamp>) -> CoreResult<MaterializedState> {
+    pub fn rebuild(
+        &mut self,
+        events: &[EventEnvelope],
+        as_of: Option<Timestamp>,
+    ) -> CoreResult<MaterializedState> {
         self.state = MaterializedState::default();
         for event in events {
             self.apply(event)?;
@@ -78,7 +82,9 @@ impl EventProjector {
             }
             "approval.recorded" => {
                 let payload: ApprovalRecordedPayload = from_payload(event.payload.clone())?;
-                self.state.approvals.insert(payload.approval.approval_id.clone(), payload.approval);
+                self.state
+                    .approvals
+                    .insert(payload.approval.approval_id.clone(), payload.approval);
             }
             "action.dispatched" => {
                 let payload: ActionDispatchedPayload = from_payload(event.payload.clone())?;
@@ -94,7 +100,9 @@ impl EventProjector {
             }
             "recovery.recorded" => {
                 let payload: RecoveryRecordedPayload = from_payload(event.payload.clone())?;
-                self.state.recoveries.insert(payload.recovery.recovery_id.clone(), payload.recovery);
+                self.state
+                    .recoveries
+                    .insert(payload.recovery.recovery_id.clone(), payload.recovery);
             }
             "fact.observed" => {
                 let payload: FactObservedPayload = from_payload(event.payload.clone())?;
@@ -120,7 +128,11 @@ impl EventProjector {
 
     fn apply_node_state_change(&mut self, payload: NodeStateChangedPayload) -> CoreResult<()> {
         let has_verification = self.state.has_successful_verification(&payload.node_id);
-        let node = self.state.nodes.get_mut(&payload.node_id).expect("node must exist before transition");
+        let node = self
+            .state
+            .nodes
+            .get_mut(&payload.node_id)
+            .expect("node must exist before transition");
         ensure_transition_allowed(&node.state, &payload.to_state, has_verification)?;
         node.state = payload.to_state;
         node.version += 1;
@@ -138,9 +150,22 @@ impl EventProjector {
         }
     }
 
-    fn apply_action_dispatched(&mut self, payload: ActionDispatchedPayload, occurred_at: Timestamp) -> CoreResult<()> {
-        let _grant = ensure_dispatch_allowed(&self.state.grants, &payload.task_id, &payload.node_id, occurred_at)?;
-        let node = self.state.nodes.get_mut(&payload.node_id).expect("node must exist before dispatch");
+    fn apply_action_dispatched(
+        &mut self,
+        payload: ActionDispatchedPayload,
+        occurred_at: Timestamp,
+    ) -> CoreResult<()> {
+        let _grant = ensure_dispatch_allowed(
+            &self.state.grants,
+            &payload.task_id,
+            &payload.node_id,
+            occurred_at,
+        )?;
+        let node = self
+            .state
+            .nodes
+            .get_mut(&payload.node_id)
+            .expect("node must exist before dispatch");
         ensure_transition_allowed(&node.state, &NodeState::Running, false)?;
         node.state = NodeState::Running;
         node.version += 1;
@@ -148,17 +173,29 @@ impl EventProjector {
         Ok(())
     }
 
-    fn apply_receipt_recorded(&mut self, payload: ReceiptRecordedPayload, occurred_at: Timestamp) -> CoreResult<()> {
+    fn apply_receipt_recorded(
+        &mut self,
+        payload: ReceiptRecordedPayload,
+        occurred_at: Timestamp,
+    ) -> CoreResult<()> {
         let receipt = payload.receipt;
         let node_id = receipt.node_id.clone();
         let receipt_id = receipt.receipt_id.clone();
         let artifact_refs = receipt.artifact_refs.clone();
         self.state.receipts.insert(receipt_id.clone(), receipt);
-        self.state.node_receipts.entry(node_id.clone()).or_default().push(receipt_id);
+        self.state
+            .node_receipts
+            .entry(node_id.clone())
+            .or_default()
+            .push(receipt_id);
         for artifact_ref in artifact_refs.iter() {
             self.state.artifacts.insert(artifact_ref.clone());
         }
-        let node = self.state.nodes.get_mut(&node_id).expect("node must exist before receipt");
+        let node = self
+            .state
+            .nodes
+            .get_mut(&node_id)
+            .expect("node must exist before receipt");
         ensure_transition_allowed(&node.state, &NodeState::Verifying, false)?;
         node.state = NodeState::Verifying;
         node.version += 1;
@@ -179,8 +216,14 @@ impl EventProjector {
         let node_id = verification.node_id.clone();
         let transition = verification.state_transition.clone();
         let verified_at = verification.verified_at;
-        self.state.verifications.insert(verification_id.clone(), verification);
-        self.state.node_verifications.entry(node_id.clone()).or_default().push(verification_id);
+        self.state
+            .verifications
+            .insert(verification_id.clone(), verification);
+        self.state
+            .node_verifications
+            .entry(node_id.clone())
+            .or_default()
+            .push(verification_id);
 
         for fact_id in transition.fact_promotions {
             if let Some(fact) = self.state.facts.get_mut(&fact_id) {
@@ -191,7 +234,11 @@ impl EventProjector {
         }
 
         if let Some(target_state) = transition.to {
-            let node = self.state.nodes.get_mut(&node_id).expect("node must exist before verification");
+            let node = self
+                .state
+                .nodes
+                .get_mut(&node_id)
+                .expect("node must exist before verification");
             ensure_transition_allowed(&node.state, &target_state, true)?;
             node.state = target_state;
             node.version += 1;
@@ -205,7 +252,9 @@ impl EventProjector {
         match self.state.facts.get(&payload.fact.fact_id) {
             Some(existing) if existing.version > payload.fact.version => {}
             _ => {
-                self.state.facts.insert(payload.fact.fact_id.clone(), payload.fact);
+                self.state
+                    .facts
+                    .insert(payload.fact.fact_id.clone(), payload.fact);
             }
         }
     }
@@ -228,7 +277,10 @@ impl EventProjector {
 
             let task_state = if node_states.is_empty() {
                 NodeState::Created
-            } else if node_states.iter().all(|state| *state == NodeState::Completed) {
+            } else if node_states
+                .iter()
+                .all(|state| *state == NodeState::Completed)
+            {
                 NodeState::Completed
             } else if node_states.iter().any(|state| *state == NodeState::Failed) {
                 NodeState::Failed
@@ -237,7 +289,10 @@ impl EventProjector {
                 .any(|state| matches!(state, NodeState::Running | NodeState::Verifying))
             {
                 NodeState::Running
-            } else if node_states.iter().any(|state| *state == NodeState::AwaitingApproval) {
+            } else if node_states
+                .iter()
+                .any(|state| *state == NodeState::AwaitingApproval)
+            {
                 NodeState::AwaitingApproval
             } else if node_states.iter().any(|state| *state == NodeState::Blocked) {
                 NodeState::Blocked

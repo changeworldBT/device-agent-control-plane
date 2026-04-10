@@ -4,7 +4,9 @@ use crate::contracts::{CapabilityGrant, Timestamp};
 use crate::error::{CoreError, CoreResult};
 
 pub fn is_grant_active(grant: &CapabilityGrant, at_time: Timestamp) -> bool {
-    matches!(grant.status.as_str(), "issued" | "active") && grant.issued_at <= at_time && at_time <= grant.expires_at
+    matches!(grant.status.as_str(), "issued" | "active")
+        && grant.issued_at <= at_time
+        && at_time <= grant.expires_at
 }
 
 pub fn find_active_grant(
@@ -15,7 +17,9 @@ pub fn find_active_grant(
 ) -> Option<CapabilityGrant> {
     grants
         .values()
-        .filter(|grant| grant.task_id == task_id && grant.node_id == node_id && is_grant_active(grant, at_time))
+        .filter(|grant| {
+            grant.task_id == task_id && grant.node_id == node_id && is_grant_active(grant, at_time)
+        })
         .cloned()
         .max_by(|left, right| left.issued_at.cmp(&right.issued_at))
 }
