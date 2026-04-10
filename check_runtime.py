@@ -13,6 +13,8 @@ COMMANDS = [
     [sys.executable, str(ROOT / "run_replays.py")],
     [sys.executable, str(ROOT / "run_local_crm_scenario.py")],
     [sys.executable, str(ROOT / "run_local_crm_compensation.py")],
+    [sys.executable, str(ROOT / "run_http_crm_scenario.py")],
+    [sys.executable, str(ROOT / "run_http_crm_compensation.py")],
     [sys.executable, str(ROOT / "rust-core" / "check_skeleton.py")],
     [sys.executable, str(ROOT / "rust-core" / "check_rust.py")],
     [sys.executable, str(ROOT / "rust-core" / "check_parity.py")],

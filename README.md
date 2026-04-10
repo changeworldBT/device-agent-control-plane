@@ -17,7 +17,9 @@ What is already working:
 - task, fact, grant, approval, verification, and recovery semantics
 - replay execution for the built-in research and CRM fixtures
 - a real local workspace adapter with controlled side effects
+- a mock HTTP CRM adapter with controlled remote-style side effects
 - compensation execution for the local CRM scenario
+- compensation execution for the mock HTTP CRM scenario
 - Rust and Python parity checks on the validated slice
 
 What is intentionally not finished:
@@ -61,6 +63,13 @@ Run the local CRM scenario:
 ```powershell
 python .\run_local_crm_scenario.py
 python .\run_local_crm_compensation.py
+```
+
+Run the mock HTTP CRM scenario:
+
+```powershell
+python .\run_http_crm_scenario.py
+python .\run_http_crm_compensation.py
 ```
 
 Top-level scripts support `--backend auto|python|rust`. `auto` prefers Rust when a working cargo toolchain is present.
