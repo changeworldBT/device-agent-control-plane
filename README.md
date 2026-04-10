@@ -91,6 +91,8 @@ The canonical validation command is:
 python .\check_runtime.py
 ```
 
+GitHub Actions runs the same command on Windows for every push and pull request.
+
 ## License
 
 MIT
