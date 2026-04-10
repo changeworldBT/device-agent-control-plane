@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3 M0 M1 Execution Plan</title>
+  <style>
+    :root {
+      --bg: #f2ece1;
+      --paper: rgba(255, 252, 246, 0.96);
+      --panel: rgba(245, 240, 232, 0.94);
+      --ink: #16211d;
+      --muted: #607069;
+      --line: rgba(22, 33, 29, 0.12);
+      --teal: #0d6a61;
+      --copper: #9b653c;
+      --warn: #8b4f3f;
+      --shadow: 0 22px 60px rgba(38, 34, 27, 0.1);
+      --radius: 22px;
+      --max: 1160px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.7;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(13, 106, 97, 0.1), transparent 24%),
+        radial-gradient(circle at 92% 8%, rgba(155, 101, 60, 0.08), transparent 22%),
+        linear-gradient(180deg, #faf5ec 0%, var(--bg) 100%);
+    }
+    a { color: inherit; }
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.06;
+    }
+    h1 { font-size: clamp(2.4rem, 4.3vw, 4.2rem); }
+    h2 { font-size: clamp(1.7rem, 3vw, 2.3rem); }
+    h3 { font-size: 1.08rem; }
+    p { margin: 0; }
+    ul { margin: 0; padding-left: 18px; }
+    li + li { margin-top: 7px; }
+    code, .mono, pre { font-family: Consolas, "SFMono-Regular", monospace; }
+
+    .shell {
+      width: min(calc(100% - 28px), var(--max));
+      margin: 24px auto 40px;
+      display: grid;
+      gap: 18px;
+    }
+    .hero, .section {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(180deg, var(--paper), rgba(245, 240, 232, 0.94));
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+    .eyebrow, .tag {
+      display: inline-block;
+      color: var(--copper);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.76rem;
+    }
+    .hero-grid, .grid-2, .grid-3 {
+      display: grid;
+      gap: 16px;
+    }
+    .hero-grid { grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .badge-row, .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .badge, .cta, .card, .callout, .item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+    .badge {
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .cta {
+      text-decoration: none;
+      padding: 10px 14px;
+      font-weight: 600;
+    }
+    .cta.primary {
+      background: var(--teal);
+      color: #f7fbfa;
+      border-color: transparent;
+    }
+    .card, .callout, .item {
+      padding: 16px 18px;
+    }
+    .callout { border-left: 4px solid var(--teal); }
+    .warning { color: var(--warn); font-weight: 700; }
+    .stack { display: grid; gap: 14px; }
+    .item .id {
+      color: var(--teal);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      overflow: hidden;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(255, 252, 246, 0.9);
+    }
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    th {
+      font-size: 0.86rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: rgba(13, 106, 97, 0.08);
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+    footer {
+      color: var(--muted);
+      font-size: 0.96rem;
+      padding: 18px 4px 10px;
+    }
+    @media (max-width: 900px) {
+      .hero-grid, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hero, .section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">April 10, 2026 · First Iteration Companion</div>
+      <div class="hero-grid">
+        <div>
+          <h1>只压 M0 / M1，先把核心语义跑通。</h1>
+          <p>这份计划只覆盖首个实现迭代：<span class="mono">M0 Replay Harness and Validation Spine</span> 与 <span class="mono">M1 Single-Agent Research Brief Vertical Slice</span>。目标不是“开始做系统”，而是把 canonical freeze 中最关键的不变量用一条窄链路证明出来。</p>
+          <div class="badge-row">
+            <div class="badge">Replay A Mandatory</div>
+            <div class="badge">Single Agent Only</div>
+            <div class="badge">Event-Sourced Truth</div>
+            <div class="badge">No Commit Yet</div>
+          </div>
+          <div class="cta-row">
+            <a class="cta primary" href="v3-design-freeze.html">canonical freeze</a>
+            <a class="cta" href="v3-mvp-backlog.html">MVP backlog</a>
+            <a class="cta" href="v3-m0-m1-delivery-sheet.html">delivery sheet</a>
+            <a class="cta" href="schemas/examples/flows/research-brief-flow.json">Replay A fixture</a>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <strong>Main Proof</strong>
+            <p>Fact 的时间/冲突语义、grant 约束、verification gate、event log + materialized view、以及 selector 的低打扰默认行为都能在单 agent 场景里成立。</p>
+          </div>
+          <div class="card">
+            <strong>Explicit Deferral</strong>
+            <p>Commit、compensation 执行、多 agent、广兼容、复杂 memory ranking 全部延后到下一阶段。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">1. Scope Lock</div>
+      <h2>这一轮只允许做什么</h2>
+      <div class="grid-2">
+        <div class="card">
+          <strong>In</strong>
+          <ul>
+            <li>Replay A 的完整状态推进</li>
+            <li>append-only event log</li>
+            <li>materialized state view</li>
+            <li>Task / TaskNode / Fact / Grant / Receipt / Verification 的最小运行时</li>
+            <li>Selector v0：硬约束 + 默认评分</li>
+            <li>Prepare 节点的可验证完成</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Out</strong>
+          <ul>
+            <li>Commit 节点真实执行</li>
+            <li>compensation 执行链</li>
+            <li>多 agent orchestration</li>
+            <li>外部 workflow / memory / agent adapter</li>
+            <li>pixel fallback 和 GUI automation</li>
+            <li>procedure trusted 自动命中</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" style="margin-top: 16px;">
+        <p><strong>Gate:</strong> 如果团队发现必须先做上面 Out 里的东西才能推进 M0/M1，优先级判断就是错的，应回退并重新切片，而不是扩大范围。</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">2. Suggested Boundaries</div>
+      <h2>建议的首批代码边界</h2>
+      <table>
+        <thead>
+          <tr><th>Boundary</th><th>Responsibility</th><th>Must Not Own</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="mono">schemas/</span></td><td>冻结对象、交互、replay fixture 和 examples</td><td>运行时逻辑</td></tr>
+          <tr><td><span class="mono">runtime/events</span></td><td>append-only event write/read、EventEnvelope、dedup</td><td>业务判定和 projector 输出缓存</td></tr>
+          <tr><td><span class="mono">runtime/projector</span></td><td>从事件流物化 TaskNode、Fact、Grant、Receipt、Verification 视图</td><td>外部副作用</td></tr>
+          <tr><td><span class="mono">domain/tasks</span></td><td>Task / TaskNode lifecycle 和 transition guards</td><td>grant issuance 决策</td></tr>
+          <tr><td><span class="mono">domain/facts</span></td><td>Fact 时间语义、freshness、conflict_set、supersedes</td><td>artifact 读取和 adapter 调用</td></tr>
+          <tr><td><span class="mono">control/grants</span></td><td>grant issuance、scope checks、lease validity</td><td>terminal transition 判定</td></tr>
+          <tr><td><span class="mono">execution/local</span></td><td>Replay A 需要的本地结构化动作</td><td>task completion 宣布</td></tr>
+          <tr><td><span class="mono">verification/core</span></td><td>receipt-backed verification 和 terminal eligibility</td><td>new side effects</td></tr>
+          <tr><td><span class="mono">selector/v0</span></td><td>硬约束过滤 + 默认评分</td><td>绕过 grant / verification</td></tr>
+          <tr><td><span class="mono">replay/runner</span></td><td>执行 replay fixture、输出 timeline 和 assertions</td><td>新规范解释</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="tag">3. Work Packages</div>
+      <h2>M0 / M1 的最小工作包</h2>
+      <div class="stack">
+        <div class="item">
+          <div class="id">W1</div>
+          <h3>Schema Ingestion and Replay Loading</h3>
+          <ul>
+            <li>直接消费 <span class="mono">schemas/json-schema</span> 和 <span class="mono">schemas/examples</span></li>
+            <li>把 replay fixture 读成可执行 timeline</li>
+            <li>将 validation failure 变成阻塞错误，而不是运行时默认补字段</li>
+          </ul>
+          <p><strong>Done:</strong> Replay A fixture 能在无业务代码的情况下完成结构校验和 timeline 装载。</p>
+        </div>
+
+        <div class="item">
+          <div class="id">W2</div>
+          <h3>Event Log Spine</h3>
+          <ul>
+            <li>稳定 event id、causation、correlation、trace</li>
+            <li>append-only write</li>
+            <li>dedup by event_id</li>
+            <li>replay from log</li>
+          </ul>
+          <p><strong>Done:</strong> 删除 materialized view 后，仍能从事件流重建当前状态。</p>
+        </div>
+
+        <div class="item">
+          <div class="id">W3</div>
+          <h3>Materialized State View</h3>
+          <ul>
+            <li>TaskNode current state</li>
+            <li>Fact current state + stale downgrade</li>
+            <li>Grant active set</li>
+            <li>Receipt / Verification lookup</li>
+          </ul>
+          <p><strong>Done:</strong> projector 输出与 replay 期望一致，且 conflict facts 可并存。</p>
+        </div>
+
+        <div class="item">
+          <div class="id">W4</div>
+          <h3>Task and Fact Runtime</h3>
+          <ul>
+            <li>TaskNode transition guards</li>
+            <li>Fact time fields: observed_at / verified_at / valid_until / ttl</li>
+            <li>Fact conflict_set / supersedes</li>
+            <li>candidate -> verified promotion only through verification</li>
+          </ul>
+          <p><strong>Done:</strong> 过期或冲突事实不会静默覆盖当前视图。</p>
+        </div>
+
+        <div class="item">
+          <div class="id">W5</div>
+          <h3>Grant, Execution, Verification Vertical Slice</h3>
+          <ul>
+            <li>grant issuance for low-risk structured actions</li>
+            <li>execution dispatch only with active grant</li>
+            <li>receipt recording</li>
+            <li>verification-backed terminal eligibility</li>
+          </ul>
+          <p><strong>Done:</strong> 无 grant dispatch 被拒绝；无 verification terminal transition 被拒绝。</p>
+        </div>
+
+        <div class="item">
+          <div class="id">W6</div>
+          <h3>Selector v0 and Attention Budget</h3>
+          <ul>
+            <li>hard constraints: grantable / verifiable / within policy / within budget</li>
+            <li>default scoring: freshness / health / verification strength / risk / user attention / cost</li>
+            <li>attention budget enters selection outcome</li>
+          </ul>
+          <p><strong>Done:</strong> Replay A 能在不引入无意义 ask 的情况下完成 Prepare terminal。</p>
+        </div>
+
+        <div class="item">
+          <div class="id">W7</div>
+          <h3>Minimal Capsule Export</h3>
+          <ul>
+            <li>只实现 resume / handoff 最小导出</li>
+            <li>hard versus soft constraints must be explicit</li>
+            <li>capsule validator only checks M0/M1 required fields</li>
+          </ul>
+          <p><strong>Done:</strong> 研究简报任务可在中途生成可校验 capsule，但 capsule 不是推进终态的必要条件。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">4. Dependency Order</div>
+      <h2>按因果而不是按团队偏好排序</h2>
+      <table>
+        <thead>
+          <tr><th>Step</th><th>Depends On</th><th>Unlocks</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>W1</td><td>none</td><td>所有后续开发都以 schema 和 replay 为输入</td></tr>
+          <tr><td>W2</td><td>W1</td><td>可审计事件来源</td></tr>
+          <tr><td>W3</td><td>W2</td><td>当前状态读取</td></tr>
+          <tr><td>W4</td><td>W3</td><td>Fact 时间/冲突语义落地</td></tr>
+          <tr><td>W5</td><td>W2, W3, W4</td><td>grant -> dispatch -> receipt -> verification 闭环</td></tr>
+          <tr><td>W6</td><td>W3, W4, W5</td><td>可解释的低打扰选择器</td></tr>
+          <tr><td>W7</td><td>W3, W4</td><td>最小 handoff / resume 资产</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="tag">5. Acceptance Matrix</div>
+      <h2>首批验收不要靠感觉</h2>
+      <table>
+        <thead>
+          <tr><th>Check</th><th>Required For</th><th>Evidence</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Replay A fixture loads without schema errors</td><td>W1</td><td>fixture validation log</td></tr>
+          <tr><td>State view can be rebuilt from empty cache using event log only</td><td>W2/W3</td><td>rebuild test</td></tr>
+          <tr><td>candidate fact never becomes verified without verification event</td><td>W4/W5</td><td>promotion guard test</td></tr>
+          <tr><td>expired or invalid fact downgrades to stale</td><td>W4</td><td>freshness test</td></tr>
+          <tr><td>conflicting facts coexist until explicit resolution</td><td>W4</td><td>conflict-set test</td></tr>
+          <tr><td>dispatch without active grant is rejected</td><td>W5</td><td>guard test</td></tr>
+          <tr><td>terminal transition without verification is rejected</td><td>W5</td><td>transition guard test</td></tr>
+          <tr><td>selector chooses a low-attention valid path for Replay A</td><td>W6</td><td>selector replay output</td></tr>
+          <tr><td>capsule export preserves hard constraints and freshness markers</td><td>W7</td><td>capsule validator output</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="tag">6. Stop Conditions</div>
+      <h2>出现这些情况，不要继续加功能</h2>
+      <div class="grid-3">
+        <div class="card"><span class="warning">Stop</span><p>如果状态视图不能从事件流重建，说明真相面实现方向错了。</p></div>
+        <div class="card"><span class="warning">Stop</span><p>如果事实还是被当成无时间静态值，说明 Fact 语义没有真正落地。</p></div>
+        <div class="card"><span class="warning">Stop</span><p>如果 grant / verification 还能被绕开，说明系统仍然只是工具编排。</p></div>
+        <div class="card"><span class="warning">Stop</span><p>如果 Replay A 需要频繁 ask 才能完成，说明 attention budget 没进 selector。</p></div>
+        <div class="card"><span class="warning">Stop</span><p>如果团队开始为了“以后会用到”而引入多 agent 或外部兼容层，说明 backlog 失焦。</p></div>
+        <div class="card"><span class="warning">Stop</span><p>如果 capsule 被当作状态权威副本使用，说明主状态面和导出资产已经混了。</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">7. Exit Gate</div>
+      <h2>M0 / M1 通过后，才允许进入下一阶段</h2>
+      <div class="grid-2">
+        <div class="card">
+          <strong>Must Be True</strong>
+          <ul>
+            <li>Replay A 全链路跑通</li>
+            <li>事件流 -> 物化视图重建稳定</li>
+            <li>Fact 时间 / 冲突语义有测试覆盖</li>
+            <li>grant / verification guard 都有效</li>
+            <li>Prepare terminal 可验证，不被误当 Commit</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Only Then</strong>
+          <p>才进入 <span class="mono">M2 Controlled Operate / Commit Slice</span>，也就是 CRM 写入、R2/R3 approval、rollback / compensate 分流、以及 Replay B 的真实执行闭环。</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      文档文件：<strong>C:\Users\84915\device-agent-doc\v3-m0-m1-execution-plan.html</strong><br />
+      角色定位：首个实现迭代的非规范 companion，只覆盖 M0 / M1 的工作切片、依赖顺序、文件边界和验收矩阵。<br />
+      规范正文：<a href="v3-design-freeze.html">v3-design-freeze.html</a>；实现 companion：<a href="v3-mvp-backlog.html">v3-mvp-backlog.html</a>；交付清单：<a href="v3-m0-m1-delivery-sheet.html">v3-m0-m1-delivery-sheet.html</a>；Replay A：<a href="schemas/examples/flows/research-brief-flow.json">research-brief-flow.json</a>。
+    </footer>
+  </div>
+</body>
+</html>

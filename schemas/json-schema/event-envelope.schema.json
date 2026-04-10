@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "event-envelope.schema.json",
+  "title": "EventEnvelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "event_type",
+    "actor_id",
+    "occurred_at",
+    "payload"
+  ],
+  "properties": {
+    "event_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "event_type": { "$ref": "./defs.schema.json#/$defs/NonEmptyString" },
+    "actor_id": { "$ref": "./defs.schema.json#/$defs/NonEmptyString" },
+    "occurred_at": { "$ref": "./defs.schema.json#/$defs/Timestamp" },
+    "payload": { "$ref": "./defs.schema.json#/$defs/FlexibleObject" },
+    "task_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "node_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "causation_ref": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "correlation_ref": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "trace_ref": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "integrity_hint": { "$ref": "./defs.schema.json#/$defs/FlexibleObject" }
+  }
+}

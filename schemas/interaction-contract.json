@@ -1,0 +1,114 @@
+{
+  "draft_name": "interaction-contract",
+  "version": "v3-freeze-draft-2026-04-10",
+  "source_spec": "../v3-design-freeze.html#appendix-interactions",
+  "event_envelope": {
+    "required": [
+      "event_id",
+      "event_type",
+      "actor_id",
+      "occurred_at",
+      "payload"
+    ],
+    "optional": [
+      "task_id",
+      "node_id",
+      "causation_ref",
+      "correlation_ref",
+      "trace_ref",
+      "integrity_hint"
+    ]
+  },
+  "truth_shape": {
+    "event_log": "append_only",
+    "state_view": "materialized",
+    "rule": "stable truth is reconstructed from events rather than edited as an opaque singleton object"
+  },
+  "commands": [
+    "task.create",
+    "node.decompose",
+    "lease.claim",
+    "lease.yield",
+    "grant.request",
+    "grant.revoke",
+    "action.dispatch",
+    "verification.request",
+    "recovery.request",
+    "capsule.generate",
+    "handoff.request",
+    "memory.compile.request"
+  ],
+  "events": [
+    "task.created",
+    "node.state_changed",
+    "lease.issued",
+    "lease.revoked",
+    "grant.issued",
+    "grant.revoked",
+    "action.dispatched",
+    "receipt.recorded",
+    "verification.recorded",
+    "recovery.recorded",
+    "capsule.published",
+    "handoff.completed",
+    "memory.compiled"
+  ],
+  "causality_rules": [
+    "grant.issued must reference a grant.request or explicit policy decision source",
+    "action.dispatched must reference an active grant and target node",
+    "receipt.recorded must reference action_id and executor_id",
+    "verification.recorded must reference receipt_refs",
+    "handoff.completed must reference capsule_id",
+    "memory.compiled must reference verified evidence rather than raw conversation history"
+  ],
+  "canonical_flow": [
+    "task.create",
+    "task.created",
+    "node.state_changed(created->ready)",
+    "grant.request",
+    "grant.issued",
+    "action.dispatch",
+    "action.dispatched",
+    "receipt.recorded",
+    "verification.request",
+    "verification.recorded",
+    "node.state_changed(verifying->terminal_or_next)"
+  ],
+  "recovery_flow": [
+    "receipt.recorded(failed_or_partial)",
+    "verification.recorded(verified_failure|insufficient_evidence|policy_violation_detected)",
+    "recovery.request",
+    "recovery.recorded(retry|replan|rollback|compensate|escalate)",
+    "node.state_changed(...)"
+  ],
+  "handoff_flow": [
+    "lease.claim",
+    "lease.issued",
+    "work_in_progress",
+    "capsule.generate",
+    "capsule.published",
+    "handoff.request",
+    "handoff.completed",
+    "lease.yield|new_lease.issued"
+  ],
+  "idempotency_rules": [
+    "all commands and events must have stable ids for deduplication and tracing",
+    "consumers must deduplicate by event_id and must not assume exactly-once delivery",
+    "duplicate action dispatch must converge through idempotency_key or grant and lease constraints",
+    "a single state transition must not be double-counted as two separate success facts"
+  ],
+  "machine_checkable_invariants": [
+    "no action.dispatched without an active grant",
+    "no success or failure verification.recorded without receipt.recorded",
+    "no terminal node.state_changed without verification.recorded",
+    "no formal handoff.completed without capsule.published",
+    "no trusted or verified memory compilation without verified evidence"
+  ],
+  "non_goals": [
+    "no event-bus topology commitment",
+    "no command-topic versus event-topic commitment",
+    "no synchronous versus asynchronous implementation commitment",
+    "no tracing, metrics, and audit backend commitment",
+    "no replay or archive storage format commitment"
+  ]
+}

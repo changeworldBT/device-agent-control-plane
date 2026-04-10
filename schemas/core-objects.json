@@ -1,0 +1,132 @@
+{
+  "draft_name": "core-objects",
+  "version": "v3-freeze-draft-2026-04-10",
+  "source_spec": "../v3-design-freeze.html#appendix-schemas",
+  "objects": {
+    "Task": {
+      "required": [
+        "task_id",
+        "objective",
+        "desired_delta",
+        "evidence_of_done",
+        "task_type",
+        "risk_class",
+        "reversibility",
+        "attention_budget",
+        "constraints"
+      ],
+      "optional": [
+        "deadline",
+        "recurrence",
+        "artifacts_in_scope",
+        "root_node_id",
+        "principal_ref",
+        "resource_owner_ref",
+        "approver_ref"
+      ],
+      "rules": [
+        "missing objective, desired_delta, evidence_of_done, or risk_class blocks execution eligibility",
+        "task is the user-goal container, not the smallest execution unit"
+      ]
+    },
+    "TaskNode": {
+      "required": [
+        "node_id",
+        "task_id",
+        "node_type",
+        "objective",
+        "desired_delta",
+        "evidence_of_done",
+        "risk_class",
+        "state",
+        "dependencies",
+        "required_capabilities",
+        "version",
+        "created_at",
+        "updated_at"
+      ],
+      "optional": [
+        "parent_node_id",
+        "principal_ref",
+        "resource_owner_ref",
+        "owner_lease_ref",
+        "grant_refs",
+        "artifact_refs"
+      ],
+      "rules": [
+        "task node is the minimum execution and verification unit",
+        "ownership, grants, receipts, and verification all bind to node"
+      ]
+    },
+    "Fact": {
+      "required": [
+        "fact_id",
+        "fact_type",
+        "statement",
+        "provenance",
+        "observed_at",
+        "evidence_refs",
+        "scope",
+        "confidence",
+        "status",
+        "version"
+      ],
+      "optional": [
+        "verified_at",
+        "valid_until",
+        "ttl",
+        "attestation_level",
+        "supersedes",
+        "conflict_set"
+      ],
+      "rules": [
+        "facts are time-bound state claims, not raw artifacts",
+        "facts may coexist in conflict until resolved; silent overwrite is forbidden",
+        "only verification may promote a candidate fact to verified"
+      ]
+    },
+    "Artifact": {
+      "required": [
+        "artifact_id",
+        "artifact_type",
+        "location_ref",
+        "owner_task",
+        "created_by",
+        "timestamp",
+        "visibility_scope"
+      ],
+      "optional": [
+        "integrity_hint"
+      ],
+      "rules": [
+        "artifact may support a fact but is not automatically a fact",
+        "sensitive artifacts should prefer references over inline payload copying"
+      ]
+    },
+    "DecisionRecord": {
+      "required": [
+        "decision_id",
+        "task_id",
+        "node_id",
+        "decision_type",
+        "selected_option",
+        "reasoning_basis",
+        "timestamp"
+      ],
+      "optional": [
+        "rejected_options",
+        "evidence_refs"
+      ],
+      "rules": [
+        "decision records explain path selection and fallback rejection",
+        "path upgrades to costlier or weaker routes should be recorded here"
+      ]
+    }
+  },
+  "identity_rules": {
+    "id_rule": "stable_and_non_reusable",
+    "reference_rule": "objects_reference_by_id_first",
+    "evidence_rule": "claims_must_link_to_evidence_refs",
+    "freshness_rule": "time_sensitive_claims_require_freshness_markers"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "action_id": "action_refresh_workbook_001",
+  "task_id": "task_weekly_report_2026w15",
+  "node_id": "node_refresh_report",
+  "action_type": "spreadsheet.refresh",
+  "required_capability": "spreadsheet.update",
+  "target_scope": {
+    "path": "C:/Users/84915/device-agent-doc/reports/weekly.xlsx"
+  },
+  "inputs": {
+    "source_csv": "C:/Users/84915/device-agent-doc/reports/source.csv"
+  },
+  "preconditions": [
+    "grant_refresh_report_001 active",
+    "source.csv exists"
+  ],
+  "expected_artifacts": [
+    "artifact_report_xlsx",
+    "artifact_delta_summary_md"
+  ],
+  "postconditions": [
+    "weekly.xlsx modified",
+    "delta summary generated"
+  ],
+  "budget": {
+    "max_retries": 2,
+    "max_minutes": 10
+  },
+  "idempotency_key": "refresh-weekly-xlsx-2026w15",
+  "grant_ref": "grant_refresh_report_001",
+  "compensation_policy_ref": "comp_restore_previous_workbook_version",
+  "side_effect_class": "controlled_local_modify"
+}

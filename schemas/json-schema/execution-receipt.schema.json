@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "execution-receipt.schema.json",
+  "title": "ExecutionReceipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receipt_id",
+    "action_id",
+    "task_id",
+    "node_id",
+    "grant_id",
+    "executor_id",
+    "status",
+    "started_at",
+    "ended_at",
+    "artifact_refs",
+    "side_effect_summary",
+    "environment_digest",
+    "retry_index"
+  ],
+  "properties": {
+    "receipt_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "action_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "task_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "node_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "grant_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "executor_id": { "$ref": "./defs.schema.json#/$defs/NonEmptyString" },
+    "status": { "$ref": "./defs.schema.json#/$defs/ReceiptStatus" },
+    "started_at": { "$ref": "./defs.schema.json#/$defs/Timestamp" },
+    "ended_at": { "$ref": "./defs.schema.json#/$defs/Timestamp" },
+    "artifact_refs": { "$ref": "./defs.schema.json#/$defs/StringList" },
+    "side_effect_summary": {
+      "oneOf": [
+        { "$ref": "./defs.schema.json#/$defs/NonEmptyString" },
+        { "$ref": "./defs.schema.json#/$defs/FlexibleObject" }
+      ]
+    },
+    "environment_digest": { "$ref": "./defs.schema.json#/$defs/FlexibleObject" },
+    "retry_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "error_summary": { "$ref": "./defs.schema.json#/$defs/NonEmptyString" }
+  }
+}

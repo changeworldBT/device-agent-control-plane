@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sovereign Device Agent v3 Design Freeze</title>
+  <style>
+    :root {
+      --bg: #ede6da;
+      --paper: rgba(255, 252, 245, 0.95);
+      --panel: rgba(244, 239, 229, 0.92);
+      --ink: #14201c;
+      --muted: #586861;
+      --line: rgba(20, 32, 28, 0.12);
+      --teal: #0e6a61;
+      --steel: #345762;
+      --copper: #9f643d;
+      --warn: #8e4e42;
+      --shadow: 0 24px 64px rgba(42, 38, 31, 0.1);
+      --radius: 22px;
+      --max: 1220px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.7;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(14, 106, 97, 0.1), transparent 28%),
+        radial-gradient(circle at 88% 10%, rgba(52, 87, 98, 0.12), transparent 24%),
+        linear-gradient(180deg, #f8f3e8 0%, var(--bg) 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.35;
+      background-image:
+        linear-gradient(rgba(20, 32, 28, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20, 32, 28, 0.03) 1px, transparent 1px);
+      background-size: 34px 34px;
+    }
+
+    a { color: inherit; }
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.05;
+    }
+    h1 { font-size: clamp(2.6rem, 4.6vw, 4.9rem); }
+    h2 { font-size: clamp(1.75rem, 3vw, 2.6rem); }
+    h3 { font-size: 1.1rem; }
+    p { margin: 0; }
+    ul { margin: 0; padding-left: 18px; }
+    li + li { margin-top: 8px; }
+    code, .mono, pre { font-family: Consolas, "SFMono-Regular", monospace; }
+
+    .shell {
+      width: min(calc(100% - 28px), var(--max));
+      margin: 24px auto 40px;
+      display: grid;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero, .section {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(180deg, var(--paper), rgba(244, 239, 229, 0.94));
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      right: -110px;
+      top: -90px;
+      background: radial-gradient(circle, rgba(52, 87, 98, 0.14), transparent 68%);
+    }
+
+    .eyebrow, .tag {
+      display: inline-block;
+      color: var(--copper);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.76rem;
+    }
+
+    .hero-grid, .grid-2, .grid-3 {
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero-grid { grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .badge-row, .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .badge, .chip {
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(20, 32, 28, 0.08);
+      font-size: 0.92rem;
+    }
+
+    .cta {
+      text-decoration: none;
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.56);
+    }
+
+    .cta.primary {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--teal), var(--steel));
+    }
+
+    .card, .callout, .code, .seal {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 16px;
+    }
+
+    .card p, .callout p, .section p, td, li { color: var(--muted); }
+    .code pre { margin: 0; white-space: pre-wrap; word-break: break-word; color: #19312a; }
+
+    .decision, .warning {
+      display: inline-flex;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 10px;
+    }
+
+    .decision { color: var(--teal); background: rgba(14, 106, 97, 0.1); }
+    .warning { color: var(--warn); background: rgba(142, 78, 66, 0.1); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 18px;
+    }
+
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    thead { background: rgba(255, 255, 255, 0.58); }
+    tbody tr:last-child td { border-bottom: 0; }
+
+    footer {
+      color: var(--muted);
+      font-size: 0.96rem;
+      padding: 22px 4px 10px;
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hero, .section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero" id="hero">
+      <div class="eyebrow">April 10, 2026 · Canonical Freeze</div>
+      <div class="hero-grid">
+        <div>
+          <h1>以共享状态为唯一真相源的受控执行系统。</h1>
+          <p><strong>V3</strong> 不是更大的 agent 套件，不是协议外壳，也不是多 agent 聊天平台。它是一个单用户、长期运行、以授权和验证为硬约束、以经验编译为长期优势、并能吸收现有生态资产的受控执行系统。</p>
+          <div class="badge-row">
+            <div class="badge">Task &gt; Conversation</div>
+            <div class="badge">State &gt; Context Window</div>
+            <div class="badge">Evidence &gt; Explanation</div>
+            <div class="badge">Recovery &gt; One-Off Success</div>
+          </div>
+          <div class="cta-row">
+            <a class="cta primary" href="v3-direction.html">v3 转向理由</a>
+            <a class="cta" href="index.html">总览蓝图</a>
+            <a class="cta" href="v2-spec.html">v2 历史规格</a>
+          </div>
+        </div>
+        <div class="grid-2" style="grid-template-columns: 1fr; align-content: start;">
+          <div class="card"><strong>Goal</strong><p><span class="mono">User Goal + Constraints + Current State -&gt; Verified State Transition</span></p></div>
+          <div class="card"><strong>Default Posture</strong><p>准备型自动化激进，提交型自动化保守。</p></div>
+          <div class="card"><strong>Truth Source</strong><p>共享稳定状态面是唯一真相源。capsule、memory、外部 agent 都不能替代它。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="problem">
+      <div class="tag">1. Problem Statement</div>
+      <h2>系统要解决的不是聊天质量，而是可验证的状态变化</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="decision">System must solve</div>
+          <ul>
+            <li>把高价值数字任务持续转化为可验证、可恢复、可复用的执行流程。</li>
+            <li>在本地设备、网页、消息、文档和外部服务之间稳定推进跨表面任务。</li>
+            <li>把重复成功和失败经验编译成长期资产，而不是积累原始聊天历史。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="warning">System does not solve</div>
+          <ul>
+            <li>不追求开放式闲聊体验最大化。</li>
+            <li>不追求默认替代所有现有生态。</li>
+            <li>不追求把所有重能力塞进基础安装包。</li>
+            <li>不追求无边界全自动化。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="axioms">
+      <div class="tag">2. Design Axioms</div>
+      <h2>后续实现不得违背的冻结公理</h2>
+      <div class="grid-3">
+        <div class="card"><strong>Layer 0 · Immutable Axioms</strong><p>任务比对话更基础；共享状态比上下文窗口更基础；证据比解释更基础；终态只能经验证或人工推进；高风险动作必须显式授权；经验必须经验证才能自动复用。</p></div>
+        <div class="card"><strong>Layer 1 · Default Protocols</strong><p>Fact / Artifact / Grant / Receipt / Capsule 的默认结构，Verify / Recover 的默认链路，多 agent 的默认协调原语，都是当前版本的默认协议。</p></div>
+        <div class="card"><strong>Layer 2 · Adjustable Policies</strong><p>任务分类、路径偏好、晋升阈值、capsule 形态、spawn 条件、TTL 和 freshness 策略都属于可调策略；调整这些不应被视为“改架构”。</p></div>
+      </div>
+      <div class="callout" style="margin-top: 16px;"><p>任何设计元素都必须能回答两个问题：它解决哪个真实任务问题；删掉它会破坏哪个硬约束。固定的 6 类任务、路径顺序、procedure 晋升数字、capsule 分类和对象粒度默认都视为当前策略层，而不是不可变公理。</p></div>
+    </section>
+
+    <section class="section" id="tasks">
+      <div class="tag">3. High-Value Task Set</div>
+      <h2>系统当前默认围绕 6 类任务和前 20 个高价值场景组织</h2>
+      <div class="grid-3">
+        <div class="card"><strong>Observe</strong><p>检索、读取、监听、抽取，默认 R0。</p></div>
+        <div class="card"><strong>Synthesize</strong><p>归纳、比较、总结、分析，默认 R0。</p></div>
+        <div class="card"><strong>Prepare</strong><p>草稿、填表、整理、候选输出，默认 R1。</p></div>
+        <div class="card"><strong>Operate</strong><p>受控范围内本地或外部修改，默认 R1/R2。</p></div>
+        <div class="card"><strong>Commit</strong><p>发送、发布、删除、支付、权限修改，默认 R3。</p></div>
+        <div class="card"><strong>Monitor</strong><p>长期观察和提醒，不得自动升级为 Commit。</p></div>
+      </div>
+      <table style="margin-top: 16px;">
+        <thead>
+          <tr><th>Representative Tasks</th><th>Type</th><th>Risk</th><th>Evidence of Done</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>研究简报、文档差异分析、供应商对比</td><td>Observe/Synthesize</td><td>R0</td><td>带来源、摘录、结构化结论</td></tr>
+          <tr><td>收件箱草稿、会议准备包、待提交表单、方案选型准备包</td><td>Prepare</td><td>R1</td><td>未发送草稿、已填好但未提交的状态</td></tr>
+          <tr><td>文件整理、表格刷新、CRM 字段更新、补丁草稿和测试</td><td>Operate</td><td>R1/R2</td><td>变更清单、回读确认、日志和产物</td></tr>
+          <tr><td>对外发送、正式系统更新、金融与安全敏感动作</td><td>Commit</td><td>R3</td><td>显式确认、外部回执、前后快照</td></tr>
+        </tbody>
+      </table>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Policy Note:</strong> 六类任务是当前默认任务语言，用于产品组织和默认治理，不是不可调整的架构边界。只要仍能满足任务、状态、授权、验证和恢复公理，任务分类可以演进。</p></div>
+    </section>
+
+    <section class="section" id="task-model">
+      <div class="tag">4. Task Model</div>
+      <h2>请求只有被编译成标准任务，才允许进入执行链路</h2>
+      <div class="grid-2">
+        <div class="code">
+          <strong>Required Task Fields</strong>
+          <pre>task_id
+objective
+desired_delta
+evidence_of_done
+task_type
+risk_class
+reversibility
+deadline
+recurrence
+attention_budget
+constraints
+artifacts_in_scope</pre>
+        </div>
+        <div class="card">
+          <strong>Frozen Rules</strong>
+          <ul>
+            <li>任务的本体是状态变化，不是“做点什么”。</li>
+            <li>任务可以分解为多个节点，但整体 <span class="mono">desired_delta</span> 必须保持一致。</li>
+            <li><span class="mono">Prepare</span> 与 <span class="mono">Commit</span> 必须硬分离。</li>
+            <li>终态只能由验证器或人工推进。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="state-model">
+      <div class="tag">5. State Model</div>
+      <h2>共享真相必须由事件来源和物化状态共同支撑</h2>
+      <table>
+        <thead>
+          <tr><th>Object</th><th>Role</th><th>Frozen Rules</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Task</td><td>目标与节点关系</td><td>终态只能由验证器或人工推进</td></tr>
+          <tr><td>Fact</td><td>关于世界的状态主张</td><td>默认先进入 candidate，只有验证后才能进入 verified</td></tr>
+          <tr><td>Artifact</td><td>可复查工件</td><td>支持事实，不天然等于事实</td></tr>
+          <tr><td>DecisionRecord</td><td>关键路径选择及依据</td><td>必须记录升级到更贵、更脆弱路径的原因</td></tr>
+          <tr><td>CapabilityGrant</td><td>具体动作授权</td><td>短时、最小范围、绑定具体节点</td></tr>
+          <tr><td>ProcedureAsset</td><td>被验证过的程序性经验</td><td>风险上限受控，不能吞掉高风险边界</td></tr>
+          <tr><td>StateCapsule</td><td>续跑和交接载体</td><td>是压缩入口，不是权威真相源</td></tr>
+        </tbody>
+      </table>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Authority of Truth:</strong> 系统中只能存在一个共享稳定状态面。planner、agent、adapter、memory compiler、external ecosystem 都只能提交候选更新，不能直接宣布真相成立。</p></div>
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Truth Shape</strong>
+          <p>工程上更可取的实现是 <span class="mono">append-only event log + materialized state view</span>。共享稳定状态面不是一份任意可改的大对象图，而是从事件来源持续物化出的当前视图；receipt、grant、verification、memory 和 capsule 都必须能反查到其事件来源。</p>
+        </div>
+        <div class="card">
+          <strong>Fact Time and Conflict Semantics</strong>
+          <p>Fact 至少要有来源、观测时间、验证时间、TTL 或有效期、置信或证明级别、版本号、supersedes 和 conflict_set。异步外部变化、跨表面回读不一致、以及旧 verified fact 过期时，不允许静默覆盖；必须进入降级、并存或显式裁决。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="risk-model">
+      <div class="tag">6. Risk and Grant Model</div>
+      <h2>风险、授权、预算必须绑定具体动作和具体范围</h2>
+      <div class="grid-3">
+        <div class="card">
+          <strong>Risk Bands</strong>
+          <ul>
+            <li><span class="mono">R0</span>：只读、低外部性、可复查</li>
+            <li><span class="mono">R1</span>：可逆、范围受限、低外部损害</li>
+            <li><span class="mono">R2</span>：中等外部性、敏感读取、跨系统受限修改</li>
+            <li><span class="mono">R3</span>：不可逆、高外部性、高身份或安全后果</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Composite Risk Inputs</strong>
+          <ul>
+            <li>动作可逆性与补偿可行性</li>
+            <li>作用范围与资源敏感度</li>
+            <li>外部性大小与最大损失窗</li>
+            <li>主体身份、resource owner 和 approver 关系</li>
+            <li>累计序列风险与当前环境可信度</li>
+          </ul>
+        </div>
+        <div class="code">
+          <strong>CapabilityGrant Minimum Structure</strong>
+          <pre>grant_id
+task_id
+node_id
+who
+what
+where
+when
+budget
+why
+approval_ref
+postcondition_ref
+principal_ref?
+resource_owner_ref?
+approver_ref?</pre>
+        </div>
+      </div>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Composite Risk Rule:</strong> R0-R3 只是治理带宽，不是风险本体。真实风险必须被计算为 <span class="mono">action × target × context × sequence</span> 的组合函数；同一动作在不同时间窗、不同租户、不同系统和不同累计序列里，风险可以完全不同。</p></div>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Prepare-to-Commit Barrier:</strong> 任何从 Prepare 进入 Commit 的动作，都必须重新经过风险确认、授权生成、postcondition 定义、compensation 或 recovery 路径确认，以及显式 approval 绑定。</p></div>
+    </section>
+    <section class="section" id="selection">
+      <div class="tag">7. Selection Model</div>
+      <h2>选择器的任务是选最稳、最便宜、最少打扰用户的路径</h2>
+      <div class="grid-3">
+        <div class="card"><strong>Optimize</strong><p>成功概率、风险暴露、人工注意力、预期成本、可恢复性。</p></div>
+        <div class="card"><strong>Disallow</strong><p>禁止单独优化模型参与度、自动化程度、多 agent 使用率或“看起来更聪明”。</p></div>
+        <div class="card"><strong>Legal Outputs</strong><p><span class="mono">No-Op / Ask / Plan / Execute / Decompose</span></p></div>
+      </div>
+      <div class="code" style="margin-top: 16px;">
+        <strong>Constrained Scoring Model</strong>
+        <pre>hard_constraints = [
+  grantable,
+  verifiable,
+  within_policy,
+  within_budget
+]
+
+score(path) = f(
+  freshness,
+  health,
+  verification_strength,
+  risk_exposure,
+  user_attention_cost,
+  expected_cost,
+  reversibility,
+  environment_trust
+)</pre>
+      </div>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Default Routing Policy:</strong> 当 freshness、health 和 verification 条件相近时，当前默认偏好仍然是 <span class="mono">verified cache -&gt; trusted procedure -&gt; deterministic path -&gt; structured interface -&gt; planner -&gt; pixel fallback</span>。但这是可调策略，不是固定全序公理。</p></div>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Planner Boundary:</strong> planner 只能产出候选动作、候选分解、候选事实和候选 capsule，不能直接决定 R3 最终提交动作、风险边界、授权范围或 verified fact。attention_budget 必须显式进入 selector，避免系统因过度 ask 而把正确设计表现成更慢流程。</p></div>
+    </section>
+
+    <section class="section" id="execution">
+      <div class="tag">8. Execution Model</div>
+      <h2>执行层是系统与外部世界发生因果关系的唯一出口</h2>
+      <div class="grid-2">
+        <div class="code">
+          <strong>ActionSpec Minimum Fields</strong>
+          <pre>action_id
+task_id
+node_id
+action_type
+required_capability
+target_scope
+inputs
+preconditions
+expected_artifacts
+postconditions
+budget
+idempotency_key</pre>
+        </div>
+        <div class="code">
+          <strong>ExecutionReceipt Minimum Fields</strong>
+          <pre>receipt_id
+action_id
+grant_id
+executor_id
+status
+started_at
+ended_at
+artifact_refs
+side_effect_summary
+environment_digest
+retry_index
+error_summary</pre>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top: 16px;">
+        <div class="card"><strong>Node Ownership Lease</strong><p>同一任务节点同一时刻只有一个 owner。</p></div>
+        <div class="card"><strong>Resource Write Lease</strong><p>同一资源范围内的高风险写动作必须持有写租约。</p></div>
+        <div class="card"><strong>Commit Lease</strong><p>所有提交类动作都必须短时、独占执行。</p></div>
+      </div>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Execution Invariant:</strong> 没有合法 CapabilityGrant 的动作不得执行；没有 ExecutionReceipt 的动作视为不可审计；执行层不得自行宣布完成、重试、回滚或长期记忆写入。</p></div>
+    </section>
+
+    <section class="section" id="verification">
+      <div class="tag">9. Verification and Recovery</div>
+      <h2>验证器决定是否真的达成目标，恢复器决定失败如何收敛</h2>
+      <div class="grid-2">
+        <div class="card">
+          <strong>Verification Method Order</strong>
+          <ul>
+            <li>直接状态回读</li>
+            <li>结构化结果校验</li>
+            <li>跨来源一致性校验</li>
+            <li>工件级证据校验</li>
+            <li>外部系统确认</li>
+            <li>人工确认</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Failure and Recovery</strong>
+          <ul>
+            <li>失败分类：<span class="mono">policy_denied / planning_insufficient / execution_failed / verification_failed / resource_unavailable / human_abort</span></li>
+            <li>恢复动作：<span class="mono">retry / replan / rollback / compensate / escalate</span></li>
+            <li><span class="mono">rollback</span> 是精确逆操作；<span class="mono">compensate</span> 是不可完全回滚时的补偿语义。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Compensation Contract:</strong> 对每个 Commit 和高外部性 Operate，adapter 都应声明：是否可逆、如何补偿、最大损失窗、最终一致性窗口、哪些副作用不可恢复。recovery 不是理念词，而是执行语义的一部分。</p></div>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Terminal Rule:</strong> 只有验证器或人工决策可以推进 <span class="mono">completed / failed / rolled_back / paused_for_human / cancelled</span>。不存在“执行成功即完成”的旁路。</p></div>
+    </section>
+
+    <section class="section" id="memory">
+      <div class="tag">10. Memory Compilation</div>
+      <h2>长期记忆的职责是降低后续成本，而不是存更多上下文</h2>
+      <div class="grid-2">
+        <div class="card">
+          <strong>Allowed Classes</strong>
+          <ul>
+            <li>Facts</li>
+            <li>Preferences</li>
+            <li>Procedures</li>
+            <li>Failures</li>
+            <li>Artifacts</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Disallowed Inputs</strong>
+          <ul>
+            <li>原始对话全文</li>
+            <li>未验证模型推断</li>
+            <li>一次性偶然成功路径</li>
+            <li>无来源用户暗示</li>
+            <li>无证据的 agent 自我总结</li>
+          </ul>
+        </div>
+      </div>
+      <table style="margin-top: 16px;">
+        <thead>
+          <tr><th>Procedure State</th><th>Current Default Promotion Policy</th><th>Use Semantics</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>draft</td><td>人工编写或一次监督成功</td><td>只能推荐或监督下使用</td></tr>
+          <tr><td>trial</td><td>至少 3 次验证成功，覆盖至少 2 个独立实例</td><td>可用于低中风险试用</td></tr>
+          <tr><td>trusted</td><td>至少 10 次验证成功；最近 20 次通过率不低于 95%；无 R3 事故</td><td>优先于 planner，但受风险上限约束</td></tr>
+          <tr><td>deprecated</td><td>事故、漂移、失败率升高或频繁人工覆盖</td><td>不得自动命中</td></tr>
+        </tbody>
+      </table>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Policy Note:</strong> 上面的数字阈值属于当前默认晋升策略，而不是架构公理。可调整的是数字和窗口；不可突破的是“未经验证的经验不得自动复用”和“R3 不得被 procedure 自动放行”。</p></div>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Trusted Procedure Risk Ceiling:</strong> trusted ProcedureAsset 可直接自动命中 R0，可条件自动命中 R1，对 R2 只能辅助选择，对 R3 永不自动放行。</p></div>
+    </section>
+
+    <section class="section" id="capsule">
+      <div class="tag">11. StateCapsule Contract</div>
+      <h2>capsule 是续跑和交接载体，不是普通摘要</h2>
+      <div class="grid-3">
+        <div class="card"><strong>Resume Capsule</strong><p>给同类执行单元断点续跑，强调操作性。</p></div>
+        <div class="card"><strong>Handoff Capsule</strong><p>给另一执行单元接班，强调未决问题、证据和边界。</p></div>
+        <div class="card"><strong>Archive Capsule</strong><p>给长期索引与再唤起，强调关键事实、工件和终态。</p></div>
+      </div>
+      <div class="code" style="margin-top: 16px;">
+        <strong>Minimum Capsule Schema</strong>
+        <pre>capsule_id
+capsule_type
+task_id
+node_id
+objective
+desired_delta
+current_task_state
+verified_facts
+open_questions
+hard_constraints
+active_grants_summary
+relevant_artifacts
+recent_decisions
+pending_dependencies
+candidate_next_actions
+failure_or_recovery_context
+freshness_markers</pre>
+      </div>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Policy Note:</strong> 三类 capsule 是当前默认封装方式，不是不可扩展的架构公理。可以增加新的 capsule 形态，但不能破坏“capsule 不是权威真相源”这一前提。</p></div>
+      <div class="callout" style="margin-top: 16px;"><p><strong>Capsule Validation Rule:</strong> 约束必须先分成 <span class="mono">hard</span> 和 <span class="mono">soft</span> 两级。capsule validator 负责检查：所有 hard constraints 是否保留、所有复制的事实是否仍有 freshness 标记、以及 capsule 中的事实与主状态面引用是否一致。复制文本只是提示，id 引用和 freshness 才是可验真相。</p></div>
+    </section>
+
+    <section class="section" id="multi-agent">
+      <div class="tag">12. Multi-Agent Coordination</div>
+      <h2>多 agent 是条件性优化器，不是默认工作模式</h2>
+      <div class="grid-2">
+        <div class="card">
+          <strong>Spawn Conditions</strong>
+          <ul>
+            <li>子任务天然可并行</li>
+            <li>写冲突低</li>
+            <li>需要不同专长或信息源</li>
+            <li>合并结果可以通过统一证据模型裁决</li>
+            <li>总收益高于协调成本</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Coordination Primitives</strong>
+          <ul>
+            <li><span class="mono">Claim / Yield / Block / Request / Handoff / Merge</span></li>
+            <li>agent 只能认领节点、读状态、申请授权、提交候选结果和推进其持有节点状态。</li>
+            <li>agent 不得直接写 verified facts、绕过授权执行高风险动作或维护私有长期真相源。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="compatibility">
+      <div class="tag">13. Compatibility Contracts</div>
+      <h2>生态兼容是硬约束，但兼容的是资产，不是外部架构主权</h2>
+      <div class="grid-2">
+        <div class="card">
+          <strong>Four Mapping Layers</strong>
+          <ul>
+            <li>Syntax Mapping</li>
+            <li>Semantic Mapping</li>
+            <li>Control Mapping</li>
+            <li>Verification Mapping</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Four Contracts</strong>
+          <ul>
+            <li>External Capability Contract</li>
+            <li>External Workflow Contract</li>
+            <li>External Memory Contract</li>
+            <li>External Agent Handoff Contract</li>
+          </ul>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top: 16px;">
+        <div class="card"><strong>Compatible</strong><p>能被映射到内部核心对象、纳入风险与授权模型、结果可验证。</p></div>
+        <div class="card"><strong>Not Compatible</strong><p>绕过授权、私有真相源不可映射、黑箱高风险副作用、只能整套吞下的封闭体系。</p></div>
+        <div class="card"><strong>Trust Ceiling</strong><p>外部输出最高只到候选证据、候选 procedure、候选事实、候选 capsule，不能直接生成 verified fact、completed task、trusted procedure。</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="acceptance">
+      <div class="tag">14. Acceptance Gates</div>
+      <h2>没有通过这些门槛，就不允许进入正式实施</h2>
+      <div class="grid-3">
+        <div class="card"><strong>Design Freeze</strong><p>必须明确分层：不可变公理、默认协议、可调策略三层不能混写；Fact 时间/冲突语义、组合风险、selector 评分、compensation 语义和 capsule 验证语义必须冻结。</p></div>
+        <div class="card"><strong>Implementation Entry</strong><p>所有 Commit 类动作已显式切出，高风险动作已有确认、验证和 compensation 或 recovery 路径；共享真相面必须可追溯到事件来源，不依赖特定厂商或协议名称成立。</p></div>
+        <div class="card"><strong>MVP</strong><p>首个可用版本不要求全覆盖。默认先证明两条窄链路：<span class="mono">Observe/Synthesize/Prepare</span> 和有限 <span class="mono">Operate/受控 Commit</span>；单 agent、单状态面、单验证器、单恢复器即可。</p></div>
+      </div>
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card"><strong>Priority Rules</strong><p>安全优先于成本；验证优先于速度；当前证据优先于历史记忆；人工显式确认优先于 procedure 命中；共享状态优先于 capsule；任务边界优先于生态便利；恢复优先于继续推进；提交边界优先于自动化流畅性。</p></div>
+        <div class="card"><strong>Disqualifiers</strong><p>若仍然把某协议或某厂商写成架构真理、仍然模糊 Prepare 和 Commit 边界、仍然允许外部生态绕过授权或验证，则设计视为未完成。</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="appendix">
+      <div class="tag">15. Appendix and Existing Docs</div>
+      <h2>现有文档的角色必须重新分层</h2>
+      <div class="grid-2">
+        <div class="card"><strong>index.html</strong><p>保留为问题定义、核心设计直觉和高层总览，不再承担规范正文职责。</p></div>
+        <div class="card"><strong>v3-direction.html</strong><p>保留为从 v2 转向 v3 的理由说明，不再承担规范条文角色。</p></div>
+        <div class="card"><strong>v2-spec.html</strong><p>保留为历史工程候选与启发，不再作为当前规范源。</p></div>
+        <div class="card"><strong>v3-design-freeze.html</strong><p>本文件作为唯一规范正文，冻结系统定义、条文和边界。</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="appendix-contracts">
+      <div class="tag">Appendix A. Object Contracts</div>
+      <h2>对象级合同、状态转换和引用规则</h2>
+      <div class="callout">
+        <p><strong>Normative Note:</strong> 本附录冻结对象字段、状态集合、状态转换和引用语义；不冻结数据库表名、队列实现、传输协议、编程语言或序列化格式。</p>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>TaskNode Contract</strong>
+          <pre>node_id
+task_id
+parent_node_id?
+node_type
+objective
+desired_delta
+evidence_of_done
+risk_class
+state
+dependencies
+required_capabilities
+principal_ref?
+resource_owner_ref?
+owner_lease_ref?
+grant_refs
+artifact_refs
+version
+created_at
+updated_at</pre>
+          <p>TaskNode 是任务图中的最小执行与验证单元。ownership、grant、execution、verification 都绑定到 node，而不是直接绑到整条对话。</p>
+        </div>
+        <div class="card">
+          <strong>CapabilityGrant Contract</strong>
+          <pre>grant_id
+task_id
+node_id
+who
+what
+where
+when
+budget
+why
+approval_ref
+postcondition_ref
+principal_ref?
+resource_owner_ref?
+approver_ref?
+status
+issued_at
+expires_at
+revocation_reason?</pre>
+          <p>grant 只对一个明确节点和范围生效。没有 <span class="mono">task_id + node_id + where + when</span> 的 grant 视为无效。</p>
+        </div>
+        <div class="card">
+          <strong>ActionSpec Contract</strong>
+          <pre>action_id
+task_id
+node_id
+action_type
+required_capability
+target_scope
+inputs
+preconditions
+expected_artifacts
+postconditions
+budget
+idempotency_key
+grant_ref?</pre>
+          <p>ActionSpec 描述“准备执行什么”，不是“已经发生了什么”。任何副作用都只能由后续 receipt 证明；高外部性动作应额外绑定 compensation 或不可恢复性说明。</p>
+        </div>
+        <div class="card">
+          <strong>ExecutionReceipt and VerificationResult</strong>
+          <pre>ExecutionReceipt:
+receipt_id
+action_id
+task_id
+node_id
+grant_id
+executor_id
+status
+started_at
+ended_at
+artifact_refs
+side_effect_summary
+environment_digest
+retry_index
+error_summary
+
+VerificationResult:
+verification_id
+task_id
+node_id
+receipt_refs
+result
+supporting_evidence
+remaining_uncertainties
+state_transition
+recommended_recovery_action?
+verified_at
+verifier_id</pre>
+          <p>receipt 记录发生了什么；verification result 判定这是否足以推进状态。两者不得合并成一个“执行成功”对象。若无法精确逆转，verification 和 recovery 还必须明确 compensate 路径。</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Fact Contract</strong>
+          <pre>fact_id
+fact_type
+statement
+provenance
+observed_at
+verified_at?
+valid_until?
+ttl?
+attestation_level?
+confidence
+supersedes?
+conflict_set?
+scope
+evidence_refs
+status
+version</pre>
+          <p>Fact 是带时间、来源、版本和冲突位点的声明系统，不是没有历史的当前值。observed、inferred、policy、derived 应被区分，而不是全都装进同一种“事实”。</p>
+        </div>
+        <div class="card">
+          <strong>StateCapsule Contract</strong>
+          <pre>capsule_id
+capsule_type
+task_id
+node_id
+objective
+desired_delta
+current_task_state
+verified_facts
+open_questions
+hard_constraints
+active_grants_summary
+relevant_artifacts
+recent_decisions
+pending_dependencies
+candidate_next_actions
+failure_or_recovery_context
+freshness_markers
+generated_at
+generator_ref</pre>
+          <p>capsule 只压缩状态，不替代状态。缺少目标、已验证事实、未决问题、硬约束或候选下一步时，capsule 直接无效。</p>
+        </div>
+        <div class="card">
+          <strong>Truth Source Shape</strong>
+          <ul>
+            <li>底层应优先采用 append-only event log。</li>
+            <li>共享稳定状态面应是从事件流物化出的当前视图。</li>
+            <li>verified fact、grant、receipt、verification、capsule 都必须能回指事件来源。</li>
+            <li>capsule 只引用切片，不拥有主状态。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Reference Rules</strong>
+          <ul>
+            <li>所有对象 id 都必须稳定、不可复用、不可依赖展示文本含义。</li>
+            <li>对象之间优先通过 id 引用，而不是复制可变状态。</li>
+            <li>证据优先引用 artifact 或 receipt，而不是把长文本重复嵌入多个对象。</li>
+            <li>同一个外部副作用只能由一个 receipt 成为主审计记录，避免重复记账。</li>
+            <li>capsule 允许引用状态，不允许自封为状态权威副本。</li>
+            <li>冲突 fact 可以并存，但不得静默覆盖；任何 supersede 都必须可审计。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Task and Node Transition Table</strong>
+          <pre>created -> ready | blocked | cancelled
+ready -> awaiting_approval | running | blocked | cancelled
+awaiting_approval -> ready | paused_for_human | cancelled
+blocked -> ready | paused_for_human | cancelled
+running -> verifying | blocked | paused_for_human | cancelled
+verifying -> completed | failed | rolled_back | paused_for_human</pre>
+          <p>终态不可隐式退出；若需要继续推进，必须由上层任务重开新节点，而不是把终态重新改回运行态。</p>
+        </div>
+        <div class="card">
+          <strong>Fact and Procedure Transition Table</strong>
+          <pre>Fact:
+candidate -> verified | stale | revoked
+verified -> stale | revoked
+stale -> candidate | verified | revoked
+revoked -> terminal
+
+ProcedureAsset:
+draft -> trial | deprecated
+trial -> trusted | deprecated
+trusted -> deprecated
+deprecated -> trial</pre>
+          <p>事实会变旧，procedure 会退化。长期运行里不存在“永久有效”的 verified fact 或 trusted procedure。</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Grant and Lease Statuses</strong>
+          <pre>CapabilityGrant:
+issued -> active | revoked | expired
+active -> exhausted | revoked | expired
+exhausted -> terminal
+expired -> terminal
+revoked -> terminal
+
+Node Ownership Lease:
+offered -> active -> expired | yielded | revoked
+
+Resource Write Lease:
+requested -> active -> expired | revoked</pre>
+          <p>任何 lease 或 grant 一旦过期、撤销或耗尽，执行器必须立即停止继续产生副作用。</p>
+        </div>
+        <div class="card">
+          <strong>Implementation Invariants</strong>
+          <ul>
+            <li>一个 node 同时只能有一个 active owner lease。</li>
+            <li>同一资源范围内只能有一个 active high-risk write lease。</li>
+            <li>同一个 commit 动作必须绑定短时独占 lease 和明确 approval_ref。</li>
+            <li>没有 verification result 的 receipt 不能推进任务终态。</li>
+            <li>没有 receipt 的 action 不得进入 procedure 编译候选。</li>
+            <li>物化状态面必须能够从事件来源重建，而不是只有当前快照。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="appendix-schemas">
+      <div class="tag">Appendix B. Portable Schema Drafts</div>
+      <h2>序列化中立的结构化 schema 草案</h2>
+      <div class="callout">
+        <p><strong>Portable Schema Rule:</strong> 下面这些结构是语义冻结，不是技术栈冻结。它们可以落成 JSON、typed interface、protobuf、SQLite record 或 IPC payload，但字段语义、必填项和枚举不得被实现层随意改写。</p>
+        <p style="margin-top: 10px;"><strong>Draft files:</strong> <a href="schemas/README.md">schemas/README.md</a> · <a href="schemas/common-enums.json">common-enums.json</a> · <a href="schemas/core-objects.json">core-objects.json</a> · <a href="schemas/execution-objects.json">execution-objects.json</a> · <a href="schemas/state-transitions.json">state-transitions.json</a> · <a href="schemas/compatibility-objects.json">compatibility-objects.json</a></p>
+        <p style="margin-top: 10px;"><strong>Implementation projection:</strong> <a href="schemas/json-schema/defs.schema.json">json-schema/defs.schema.json</a> · <a href="schemas/json-schema/task.schema.json">task.schema.json</a> · <a href="schemas/json-schema/task-node.schema.json">task-node.schema.json</a> · <a href="schemas/json-schema/fact.schema.json">fact.schema.json</a> · <a href="schemas/json-schema/capability-grant.schema.json">capability-grant.schema.json</a> · <a href="schemas/json-schema/action-spec.schema.json">action-spec.schema.json</a> · <a href="schemas/json-schema/execution-receipt.schema.json">execution-receipt.schema.json</a> · <a href="schemas/json-schema/verification-result.schema.json">verification-result.schema.json</a> · <a href="schemas/json-schema/state-capsule.schema.json">state-capsule.schema.json</a> · <a href="schemas/json-schema/event-envelope.schema.json">event-envelope.schema.json</a></p>
+        <p style="margin-top: 10px;"><strong>Example payloads:</strong> <a href="schemas/examples/task.example.json">task.example.json</a> · <a href="schemas/examples/task-node.example.json">task-node.example.json</a> · <a href="schemas/examples/fact.example.json">fact.example.json</a> · <a href="schemas/examples/capability-grant.example.json">capability-grant.example.json</a> · <a href="schemas/examples/action-spec.example.json">action-spec.example.json</a> · <a href="schemas/examples/execution-receipt.example.json">execution-receipt.example.json</a> · <a href="schemas/examples/verification-result.example.json">verification-result.example.json</a> · <a href="schemas/examples/state-capsule.example.json">state-capsule.example.json</a> · <a href="schemas/examples/event-envelope.example.json">event-envelope.example.json</a></p>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Common Enums</strong>
+          <pre>{
+  "task_type": ["Observe", "Synthesize", "Prepare", "Operate", "Commit", "Monitor"],
+  "task_state": [
+    "created",
+    "ready",
+    "blocked",
+    "awaiting_approval",
+    "running",
+    "verifying",
+    "completed",
+    "failed",
+    "rolled_back",
+    "paused_for_human",
+    "cancelled"
+  ],
+  "fact_type": ["observed", "inferred", "policy", "derived"],
+  "risk_class": ["R0", "R1", "R2", "R3"],
+  "fact_status": ["candidate", "verified", "stale", "revoked"],
+  "procedure_status": ["draft", "trial", "trusted", "deprecated"],
+  "grant_status": ["issued", "active", "exhausted", "expired", "revoked"],
+  "receipt_status": [
+    "succeeded_with_receipt",
+    "failed_before_side_effect",
+    "failed_after_partial_side_effect",
+    "timed_out",
+    "aborted_due_to_grant_loss"
+  ],
+  "verification_result": [
+    "verified_success",
+    "verified_failure",
+    "insufficient_evidence",
+    "policy_violation_detected",
+    "human_confirmation_required"
+  ],
+  "recovery_action": ["retry", "replan", "rollback", "compensate", "escalate"],
+  "capsule_type": ["resume", "handoff", "archive"]
+}</pre>
+          <p>实现层可以增加本地诊断字段，但不得改写这些核心枚举的语义。</p>
+        </div>
+        <div class="card">
+          <strong>Identity and Time Rules</strong>
+          <pre>{
+  "id_rule": "stable_and_non_reusable",
+  "timestamp_rule": "iso8601_or_equivalent_monotonic_source",
+  "scope_rule": "resource_scope_must_be_explicit",
+  "reference_rule": "objects_reference_by_id_first",
+  "evidence_rule": "claims_must_link_to_evidence_refs",
+  "freshness_rule": "time_sensitive_claims_require_freshness_markers"
+}</pre>
+          <p>没有稳定 id、明确 scope、可追溯 evidence 和 freshness 标记的对象，不得进入高信任路径。</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Task and TaskNode Draft</strong>
+          <pre>{
+  "Task": {
+    "required": [
+      "task_id",
+      "objective",
+      "desired_delta",
+      "evidence_of_done",
+      "task_type",
+      "risk_class",
+      "reversibility",
+      "attention_budget",
+      "constraints"
+    ],
+    "optional": [
+      "deadline",
+      "recurrence",
+      "artifacts_in_scope",
+      "root_node_id",
+      "principal_ref",
+      "resource_owner_ref",
+      "approver_ref"
+    ]
+  },
+  "TaskNode": {
+    "required": [
+      "node_id",
+      "task_id",
+      "node_type",
+      "objective",
+      "desired_delta",
+      "evidence_of_done",
+      "risk_class",
+      "state",
+      "dependencies",
+      "required_capabilities",
+      "version",
+      "created_at",
+      "updated_at"
+    ],
+    "optional": [
+      "parent_node_id",
+      "principal_ref",
+      "resource_owner_ref",
+      "owner_lease_ref",
+      "grant_refs",
+      "artifact_refs"
+    ]
+  }
+}</pre>
+          <p>Task 是用户目标容器，TaskNode 是执行和验证单元；不得把二者混成单一“任务记录”。</p>
+        </div>
+        <div class="card">
+          <strong>Fact, Artifact, DecisionRecord Draft</strong>
+          <pre>{
+  "Fact": {
+    "required": [
+      "fact_id",
+      "fact_type",
+      "statement",
+      "provenance",
+      "observed_at",
+      "scope",
+      "evidence_refs",
+      "confidence",
+      "status",
+      "version"
+    ],
+    "optional": [
+      "verified_at",
+      "valid_until",
+      "ttl",
+      "attestation_level",
+      "supersedes",
+      "conflict_set"
+    ]
+  },
+  "Artifact": {
+    "required": [
+      "artifact_id",
+      "artifact_type",
+      "location_ref",
+      "owner_task",
+      "created_by",
+      "timestamp",
+      "visibility_scope"
+    ],
+    "optional": ["integrity_hint"]
+  },
+  "DecisionRecord": {
+    "required": [
+      "decision_id",
+      "task_id",
+      "node_id",
+      "decision_type",
+      "selected_option",
+      "reasoning_basis",
+      "timestamp"
+    ],
+    "optional": ["rejected_options", "evidence_refs"]
+  }
+}</pre>
+          <p>Fact 是主张，Artifact 是工件，DecisionRecord 是路径裁决。三者不能用单一日志结构代替。</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Grant and Action Draft</strong>
+          <pre>{
+  "CapabilityGrant": {
+    "required": [
+      "grant_id",
+      "task_id",
+      "node_id",
+      "who",
+      "what",
+      "where",
+      "when",
+      "budget",
+      "why",
+      "approval_ref",
+      "postcondition_ref",
+      "status",
+      "issued_at",
+      "expires_at"
+    ],
+    "optional": [
+      "revocation_reason",
+      "principal_ref",
+      "resource_owner_ref",
+      "approver_ref"
+    ]
+  },
+  "ActionSpec": {
+    "required": [
+      "action_id",
+      "task_id",
+      "node_id",
+      "action_type",
+      "required_capability",
+      "target_scope",
+      "inputs",
+      "preconditions",
+      "expected_artifacts",
+      "postconditions",
+      "budget",
+      "idempotency_key"
+    ],
+    "optional": [
+      "grant_ref",
+      "compensation_policy_ref",
+      "side_effect_class"
+    ]
+  }
+}</pre>
+          <p>grant 定义能不能做；action 定义准备怎么做。实现层不得把“选中动作”和“已获授权”压缩成一个布尔值。</p>
+        </div>
+        <div class="card">
+          <strong>Receipt and Verification Draft</strong>
+          <pre>{
+  "ExecutionReceipt": {
+    "required": [
+      "receipt_id",
+      "action_id",
+      "task_id",
+      "node_id",
+      "grant_id",
+      "executor_id",
+      "status",
+      "started_at",
+      "ended_at",
+      "artifact_refs",
+      "side_effect_summary",
+      "environment_digest",
+      "retry_index"
+    ],
+    "optional": ["error_summary"]
+  },
+  "VerificationResult": {
+    "required": [
+      "verification_id",
+      "task_id",
+      "node_id",
+      "receipt_refs",
+      "result",
+      "supporting_evidence",
+      "remaining_uncertainties",
+      "state_transition",
+      "verified_at",
+      "verifier_id"
+    ],
+    "optional": ["recommended_recovery_action"]
+  }
+}</pre>
+          <p>receipt 没有资格宣布“完成”；verification 也没有资格虚构“执行已发生”。</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>ProcedureAsset and StateCapsule Draft</strong>
+          <pre>{
+  "ProcedureAsset": {
+    "required": [
+      "procedure_id",
+      "name",
+      "status",
+      "scope",
+      "applicable_task_types",
+      "required_capabilities",
+      "success_criteria",
+      "risk_ceiling",
+      "promotion_evidence_refs",
+      "updated_at"
+    ],
+    "optional": [
+      "failure_modes",
+      "rollback_hint",
+      "deprecation_reason"
+    ]
+  },
+  "StateCapsule": {
+    "required": [
+      "capsule_id",
+      "capsule_type",
+      "task_id",
+      "node_id",
+      "objective",
+      "desired_delta",
+      "current_task_state",
+      "verified_facts",
+      "open_questions",
+      "hard_constraints",
+      "soft_constraints",
+      "active_grants_summary",
+      "relevant_artifacts",
+      "recent_decisions",
+      "pending_dependencies",
+      "candidate_next_actions",
+      "failure_or_recovery_context",
+      "freshness_markers",
+      "validator_ref",
+      "generated_at",
+      "generator_ref"
+    ]
+  }
+}</pre>
+          <p>ProcedureAsset 代表可复用经验； StateCapsule 代表可续跑状态。两者都不能直接替代共享稳定状态面。</p>
+        </div>
+        <div class="card">
+          <strong>Compatibility Descriptor Draft</strong>
+          <pre>{
+  "ExternalCapabilityDescriptor": {
+    "required": [
+      "capability_id",
+      "provider_name",
+      "interface_type",
+      "declared_scope",
+      "supported_actions",
+      "input_schema_ref",
+      "output_schema_ref",
+      "risk_profile",
+      "cost_profile",
+      "verification_hint",
+      "required_environment",
+      "failure_modes"
+    ],
+    "optional": [
+      "compensation_hint",
+      "irreversible_side_effects",
+      "max_loss_window",
+      "consistency_window"
+    ]
+  },
+  "ExternalAgentHandoff": {
+    "required": [
+      "agent_id",
+      "task_or_node_ref",
+      "produced_artifacts",
+      "candidate_facts",
+      "used_evidence",
+      "assumptions",
+      "open_questions",
+      "recommended_next_actions",
+      "claimed_risk_changes",
+      "capsule_or_resume_payload"
+    ]
+  }
+}</pre>
+          <p>兼容层要传的是结构化资产，不是松散 prose。不能结构化映射的外部对象，只能停留在低信任辅助层。</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Machine-Readable Acceptance Checks</strong>
+          <ul>
+            <li>所有 required 字段缺失都必须在 schema 校验阶段被拒绝，而不是运行时默默补默认值。</li>
+            <li>所有枚举值都必须可显式比对，不得用自由文本代替核心状态。</li>
+            <li>所有 cross-reference 都必须能解析到稳定 id；悬空引用必须触发校验失败或降级处理。</li>
+            <li>所有 time-sensitive 对象都必须带 freshness 或 expires 语义，不能无限期默认为有效。</li>
+            <li>所有 high-risk 对象都必须能反查 approval_ref、grant_id、receipt_id 和 verification_id。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Non-Goals of This Appendix</strong>
+          <ul>
+            <li>不规定 JSON Schema draft 版本。</li>
+            <li>不规定具体 protobuf / Avro / OpenAPI 表达方式。</li>
+            <li>不规定数据库范式、索引策略或 migration 工具。</li>
+            <li>不规定 IPC 使用 stdio、HTTP、named pipe 还是消息队列。</li>
+            <li>不规定某种编程语言的类型系统作为规范主语言。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="appendix-interactions">
+      <div class="tag">Appendix C. Interaction Drafts</div>
+      <h2>传输中立的 command / event 交互合同</h2>
+      <div class="callout">
+        <p><strong>Interaction Rule:</strong> 本附录冻结的是交互语义，不是消息中间件选型。它可以落成内存队列、named pipe、HTTP、stdio JSON、append-only log 或本地事件总线，但命令含义、因果引用和状态推进规则不得被实现层改写。</p>
+        <p style="margin-top: 10px;"><strong>Draft file:</strong> <a href="schemas/interaction-contract.json">interaction-contract.json</a></p>
+        <p style="margin-top: 10px;"><strong>Related projection:</strong> <a href="schemas/json-schema/event-envelope.schema.json">json-schema/event-envelope.schema.json</a> · <a href="schemas/examples/event-envelope.example.json">examples/event-envelope.example.json</a></p>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>EventEnvelope Draft</strong>
+          <pre>{
+  "required": [
+    "event_id",
+    "event_type",
+    "actor_id",
+    "occurred_at",
+    "payload"
+  ],
+  "optional": [
+    "task_id",
+    "node_id",
+    "causation_ref",
+    "correlation_ref",
+    "trace_ref",
+    "integrity_hint"
+  ]
+}</pre>
+          <p>所有事件都必须可追溯到 actor、时间和 payload；会改变状态的事件还必须能追溯到 causation_ref。</p>
+        </div>
+        <div class="card">
+          <strong>Minimal Command Set</strong>
+          <pre>[
+  "task.create",
+  "node.decompose",
+  "lease.claim",
+  "lease.yield",
+  "grant.request",
+  "grant.revoke",
+  "action.dispatch",
+  "verification.request",
+  "recovery.request",
+  "capsule.generate",
+  "handoff.request",
+  "memory.compile.request"
+]</pre>
+          <p>命令表达“请求系统尝试做某事”；命令本身不等于事实成立，也不等于状态已推进。</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Minimal Event Set</strong>
+          <pre>[
+  "task.created",
+  "node.state_changed",
+  "lease.issued",
+  "lease.revoked",
+  "grant.issued",
+  "grant.revoked",
+  "action.dispatched",
+  "receipt.recorded",
+  "verification.recorded",
+  "recovery.recorded",
+  "capsule.published",
+  "handoff.completed",
+  "memory.compiled"
+]</pre>
+          <p>事件表达“系统已经记录某个可审计事实”。只有事件，才能被其他组件消费成后续因果。</p>
+        </div>
+        <div class="card">
+          <strong>Causality Rules</strong>
+          <ul>
+            <li><span class="mono">grant.issued</span> 必须引用对应的 <span class="mono">grant.request</span> 或策略判定来源。</li>
+            <li><span class="mono">action.dispatched</span> 必须引用 active grant 和目标 node。</li>
+            <li><span class="mono">receipt.recorded</span> 必须引用 action_id 和 executor_id。</li>
+            <li><span class="mono">verification.recorded</span> 必须引用 receipt_refs。</li>
+            <li><span class="mono">handoff.completed</span> 必须引用 capsule_id。</li>
+            <li><span class="mono">memory.compiled</span> 必须引用 verified evidence，而不是原始对话。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Canonical Flow Draft</strong>
+          <pre>task.create
+  -> task.created
+  -> node.state_changed(created -> ready)
+  -> grant.request
+  -> grant.issued
+  -> action.dispatch
+  -> action.dispatched
+  -> receipt.recorded
+  -> verification.request
+  -> verification.recorded
+  -> node.state_changed(verifying -> terminal_or_next)</pre>
+          <p>这条链路定义的是最小完整因果闭环。实现层可以批处理，但不能跳过 grant、receipt、verification 任一环节。</p>
+        </div>
+        <div class="card">
+          <strong>Recovery Flow Draft</strong>
+          <pre>receipt.recorded(failed_or_partial)
+  -> verification.recorded(verified_failure | insufficient_evidence | policy_violation_detected)
+  -> recovery.request
+  -> recovery.recorded(retry | replan | rollback | compensate | escalate)
+  -> node.state_changed(...)</pre>
+          <p>恢复不是异常旁路，而是正式状态推进链的一部分；尤其 rollback 也必须留下 receipt 和 verification 痕迹。</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Handoff and Multi-Agent Flow</strong>
+          <pre>lease.claim
+  -> lease.issued
+  -> work_in_progress
+  -> capsule.generate
+  -> capsule.published
+  -> handoff.request
+  -> handoff.completed
+  -> lease.yield | new lease.issued</pre>
+          <p>没有 capsule 的 handoff 只算产物转交，不算节点级正式交接。</p>
+        </div>
+        <div class="card">
+          <strong>Idempotency and Dedup Rules</strong>
+          <ul>
+            <li>所有 command 和 event 都必须有稳定 id，用于去重和追踪。</li>
+            <li>消费者必须能按 <span class="mono">event_id</span> 去重，不能假设消息只投递一次。</li>
+            <li>同一 action 的重复派发必须由 <span class="mono">idempotency_key</span> 或 grant/lease 约束收敛。</li>
+            <li>同一状态转换不能被两个独立事件重复记账为两个成功事实。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Machine-Checkable Interaction Invariants</strong>
+          <ul>
+            <li>没有 active grant，不得出现 <span class="mono">action.dispatched</span>。</li>
+            <li>没有 <span class="mono">receipt.recorded</span>，不得出现 <span class="mono">verification.recorded</span> 的 success/failure 结论。</li>
+            <li>没有 <span class="mono">verification.recorded</span>，不得出现终态级 <span class="mono">node.state_changed</span>。</li>
+            <li>没有 <span class="mono">capsule.published</span>，不得出现正式 <span class="mono">handoff.completed</span>。</li>
+            <li>没有 verified evidence，不得出现 <span class="mono">memory.compiled</span> 进入 trusted 或 verified 层。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Non-Goals of This Appendix</strong>
+          <ul>
+            <li>不规定事件总线必须中心化还是嵌入式。</li>
+            <li>不规定 command 和 event 是否共用同一物理 topic 或日志。</li>
+            <li>不规定同步 RPC 和异步事件谁先落地。</li>
+            <li>不规定 tracing、metrics、audit 是否由同一系统承载。</li>
+            <li>不规定重放和归档的存储格式。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="appendix-replays">
+      <div class="tag">Appendix D. Task Replays</div>
+      <h2>用两条真实任务链回放规范，区分不变量与策略</h2>
+      <div class="callout">
+        <p><strong>Replay Rule:</strong> 回放的目的不是证明“文档覆盖很全”，而是检验哪些条文真的是架构不变量，哪些其实只是当前产品策略。若某条规则只是在特定任务链里作为默认偏好成立，它就不应被写成不可变公理。</p>
+        <p style="margin-top: 10px;"><strong>Replay fixtures:</strong> <a href="schemas/json-schema/task-replay.schema.json">task-replay.schema.json</a> · <a href="schemas/examples/flows/research-brief-flow.json">research-brief-flow.json</a> · <a href="schemas/examples/flows/crm-followup-flow.json">crm-followup-flow.json</a></p>
+        <p style="margin-top: 10px;"><strong>Implementation companions:</strong> <a href="v3-mvp-backlog.html">v3-mvp-backlog.html</a> · <a href="v3-m0-m1-execution-plan.html">v3-m0-m1-execution-plan.html</a> · <a href="v3-m0-m1-delivery-sheet.html">v3-m0-m1-delivery-sheet.html</a></p>
+      </div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card">
+          <strong>Replay 1 · Research Brief</strong>
+          <p>链路是 <span class="mono">Observe -&gt; Synthesize -&gt; Prepare</span>。它验证的是：候选 fact 不得越过证据直接进入 verified；Prepare 产物可以完成，但不等于 Commit；冲突 fact 可以并存，不得静默覆盖。</p>
+          <p style="margin-top: 10px;">本回放里真正不可变的是真相独立于上下文、事实要带时间和来源、终态必须经验证；可调的是任务分类语言、事实 freshness 窗口、以及 draft 是否默认 auto-complete。</p>
+        </div>
+        <div class="card">
+          <strong>Replay 2 · CRM Update and Follow-up Commit</strong>
+          <p>链路是 <span class="mono">Observe -&gt; Prepare -&gt; Operate -&gt; Commit</span>。它验证的是：Prepare/Commit 屏障不能被绕过；R2/R3 风险要结合目标对象和序列环境计算；可逆写入和不可逆外发必须分别走 rollback 与 compensate 语义。</p>
+          <p style="margin-top: 10px;">本回放里真正不可变的是 grant、verification、compensation 语义和事件来源；可调的是风险阈值、approval UX、selector 打分权重和补偿时窗。</p>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-top: 16px;">
+        <div class="card"><strong>Invariant Surfaces</strong><p>单一真相源、事件可追溯、显式授权、验证后终态、不可逆动作的 compensation 语义。</p></div>
+        <div class="card"><strong>Policy Surfaces</strong><p>任务语言、风险阈值数字、路径偏好顺序、procedure 晋升门槛、capsule 形态、attention budget 触发阈值。</p></div>
+        <div class="card"><strong>MVP Guidance</strong><p>这两条 replay 就是建议的首个窄 MVP：先用单 agent、单状态面、单验证器把它们跑通，再扩多 agent 和更宽生态兼容。</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="seals">
+      <div class="tag">Seal Clauses</div>
+      <h2>6 条补充封口条文</h2>
+      <div class="grid-3">
+        <div class="seal"><strong>F1</strong><p>系统中只能存在一个共享稳定状态面作为唯一真相源，任何外部来源都只能提交候选更新。</p></div>
+        <div class="seal"><strong>F2</strong><p>所有 verified fact 都是条件性的；时效过期、环境变化、冲突证据或用户撤销都会触发降级复核。</p></div>
+        <div class="seal"><strong>F3</strong><p>任何从 Prepare 进入 Commit 的动作都必须重新过风险、授权、postcondition 和 recovery 检查。</p></div>
+        <div class="seal"><strong>F4</strong><p>trusted procedure 永不自动放行 R3，高风险控制权始终留在授权和验证链路。</p></div>
+        <div class="seal"><strong>F5</strong><p>Monitor 可以自动触发 Observe、Synthesize、Prepare 和有限 Operate，但绝不自动触发 Commit。</p></div>
+        <div class="seal"><strong>F6</strong><p>外部能力、workflow、memory、agent 输出最高只到候选层，不能直接生成 verified fact、completed task 或 trusted procedure。</p></div>
+      </div>
+    </section>
+
+    <footer>
+      文档文件：<strong>C:\Users\84915\device-agent-doc\v3-design-freeze.html</strong><br />
+      角色定位：唯一规范正文，冻结 v3 的系统定义、核心对象、风险边界、执行与验证链路、记忆编译、capsule 协议、多 agent 规则、生态兼容合同，以及对象级和交互级附录。<br />
+      配套文档：总览 <a href="index.html">index.html</a>，转向理由 <a href="v3-direction.html">v3-direction.html</a>，历史参考 <a href="v2-spec.html">v2-spec.html</a>。
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{
+  "task_id": "task_weekly_report_2026w15",
+  "objective": "Refresh the weekly operations report and stage it for review",
+  "desired_delta": {
+    "report_file": "updated",
+    "review_state": "ready_for_human"
+  },
+  "evidence_of_done": {
+    "artifacts_required": [
+      "artifact_report_xlsx",
+      "artifact_delta_summary_md"
+    ],
+    "verification": "updated report plus delta summary exists"
+  },
+  "task_type": "Operate",
+  "risk_class": "R1",
+  "reversibility": {
+    "kind": "file_version_restore"
+  },
+  "attention_budget": {
+    "max_confirmations": 1
+  },
+  "constraints": {
+    "workspace": "C:/Users/84915/device-agent-doc",
+    "external_send_allowed": false
+  },
+  "principal_ref": "principal.user.primary",
+  "resource_owner_ref": "owner.workspace.primary",
+  "approver_ref": "principal.user.primary",
+  "deadline": "2026-04-11T09:00:00+08:00",
+  "artifacts_in_scope": [
+    "artifact_report_xlsx",
+    "artifact_source_csv"
+  ],
+  "root_node_id": "node_refresh_report"
+}

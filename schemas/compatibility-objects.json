@@ -1,0 +1,99 @@
+{
+  "draft_name": "compatibility-objects",
+  "version": "v3-freeze-draft-2026-04-10",
+  "source_spec": "../v3-design-freeze.html#appendix-schemas",
+  "objects": {
+    "ExternalCapabilityDescriptor": {
+      "required": [
+        "capability_id",
+        "provider_name",
+        "interface_type",
+        "declared_scope",
+        "supported_actions",
+        "input_schema_ref",
+        "output_schema_ref",
+        "risk_profile",
+        "cost_profile",
+        "verification_hint",
+        "required_environment",
+        "failure_modes"
+      ],
+      "optional": [
+        "compensation_hint",
+        "irreversible_side_effects",
+        "max_loss_window",
+        "consistency_window"
+      ],
+      "rules": [
+        "descriptor defines declared capability, not blanket authority",
+        "unverifiable capability must remain low-trust",
+        "high externality capability should declare compensation and unrecoverable side-effect semantics"
+      ]
+    },
+    "ExternalWorkflowDescriptor": {
+      "required": [
+        "workflow_id",
+        "workflow_type",
+        "objective_pattern",
+        "preconditions",
+        "steps_or_strategy",
+        "expected_artifacts",
+        "risk_envelope",
+        "required_capabilities",
+        "verification_expectations"
+      ],
+      "optional": [
+        "fallback_or_recovery_hint"
+      ],
+      "rules": [
+        "workflow asset may describe how to act but does not grant permission to act",
+        "commit behavior must be explicit, never hidden in workflow internals"
+      ]
+    },
+    "ExternalMemoryObject": {
+      "required": [
+        "memory_object_id",
+        "memory_class",
+        "source",
+        "scope",
+        "timestamp",
+        "freshness",
+        "confidence",
+        "deletable",
+        "evidence_refs",
+        "sensitivity_level"
+      ],
+      "optional": [],
+      "rules": [
+        "external memory enters as candidate retrieval input, not authoritative fact",
+        "memory lacking source, scope, or freshness must remain low-trust"
+      ]
+    },
+    "ExternalAgentHandoff": {
+      "required": [
+        "agent_id",
+        "task_or_node_ref",
+        "produced_artifacts",
+        "candidate_facts",
+        "used_evidence",
+        "assumptions",
+        "open_questions",
+        "recommended_next_actions",
+        "claimed_risk_changes",
+        "capsule_or_resume_payload"
+      ],
+      "optional": [],
+      "rules": [
+        "external agent output is candidate state input, not authoritative truth",
+        "plain prose without evidence or structure must not enter high-trust coordination"
+      ]
+    }
+  },
+  "trust_ceiling": [
+    "external capability result may become candidate evidence",
+    "external workflow may become candidate procedure",
+    "external memory may become candidate fact or retrieval input",
+    "external agent may become candidate plan, candidate state update, or candidate capsule",
+    "no external source may directly create verified fact, completed task, or trusted procedure"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "capsule_id": "capsule_handoff_report_001",
+  "capsule_type": "handoff",
+  "task_id": "task_weekly_report_2026w15",
+  "node_id": "node_review_report",
+  "objective": "Stage refreshed report for human review",
+  "desired_delta": {
+    "review_state": "ready_for_human"
+  },
+  "current_task_state": "paused_for_human",
+  "verified_facts": [
+    "fact_report_refreshed",
+    "fact_delta_summary_generated"
+  ],
+  "open_questions": [
+    "Should the commentary section be shortened before send?"
+  ],
+  "hard_constraints": [
+    "No external send without fresh approval",
+    "Do not modify financial cells outside Summary sheet"
+  ],
+  "soft_constraints": [
+    "Prefer concise commentary in review mail",
+    "Keep formula layout unchanged if possible"
+  ],
+  "active_grants_summary": [],
+  "relevant_artifacts": [
+    "artifact_report_xlsx",
+    "artifact_delta_summary_md"
+  ],
+  "recent_decisions": [
+    "decision_use_spreadsheet_adapter"
+  ],
+  "pending_dependencies": [
+    "human_review_requested"
+  ],
+  "candidate_next_actions": [
+    "collect_human_feedback",
+    "prepare_send_node"
+  ],
+  "failure_or_recovery_context": {
+    "last_verified_node": "node_refresh_report"
+  },
+  "freshness_markers": {
+    "report_snapshot_at": "2026-04-10T11:06:00+08:00"
+  },
+  "validator_ref": "capsule-validator.v1",
+  "generated_at": "2026-04-10T11:07:00+08:00",
+  "generator_ref": "coordinator.primary"
+}

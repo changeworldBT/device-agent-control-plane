@@ -1,0 +1,31 @@
+{
+  "grant_id": "grant_refresh_report_001",
+  "task_id": "task_weekly_report_2026w15",
+  "node_id": "node_refresh_report",
+  "who": "executor.local.spreadsheet",
+  "what": "spreadsheet.update",
+  "where": {
+    "path": "C:/Users/84915/device-agent-doc/reports/weekly.xlsx",
+    "sheet_scope": [
+      "Summary",
+      "SourceImport"
+    ]
+  },
+  "when": {
+    "not_before": "2026-04-10T11:02:00+08:00",
+    "not_after": "2026-04-10T11:20:00+08:00"
+  },
+  "budget": {
+    "max_retries": 2,
+    "max_minutes": 10
+  },
+  "why": "Refresh workbook from approved source data",
+  "approval_ref": "approval_task_weekly_report_001",
+  "postcondition_ref": "postcondition_workbook_refreshed",
+  "principal_ref": "principal.user.primary",
+  "resource_owner_ref": "owner.workspace.primary",
+  "approver_ref": "principal.user.primary",
+  "status": "active",
+  "issued_at": "2026-04-10T11:02:00+08:00",
+  "expires_at": "2026-04-10T11:20:00+08:00"
+}

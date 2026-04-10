@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "task.schema.json",
+  "title": "Task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id",
+    "objective",
+    "desired_delta",
+    "evidence_of_done",
+    "task_type",
+    "risk_class",
+    "reversibility",
+    "attention_budget",
+    "constraints"
+  ],
+  "properties": {
+    "task_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "objective": { "$ref": "./defs.schema.json#/$defs/NonEmptyString" },
+    "desired_delta": { "$ref": "./defs.schema.json#/$defs/FlexibleObject" },
+    "evidence_of_done": { "$ref": "./defs.schema.json#/$defs/FlexibleObject" },
+    "task_type": { "$ref": "./defs.schema.json#/$defs/TaskType" },
+    "risk_class": { "$ref": "./defs.schema.json#/$defs/RiskClass" },
+    "reversibility": { "$ref": "./defs.schema.json#/$defs/FlexibleObject" },
+    "deadline": { "$ref": "./defs.schema.json#/$defs/Timestamp" },
+    "recurrence": { "$ref": "./defs.schema.json#/$defs/FlexibleObject" },
+    "attention_budget": { "$ref": "./defs.schema.json#/$defs/FlexibleObject" },
+    "constraints": { "$ref": "./defs.schema.json#/$defs/FlexibleObject" },
+    "artifacts_in_scope": { "$ref": "./defs.schema.json#/$defs/StringList" },
+    "root_node_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "principal_ref": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "resource_owner_ref": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "approver_ref": { "$ref": "./defs.schema.json#/$defs/Id" }
+  }
+}

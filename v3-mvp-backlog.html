@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3 MVP Backlog</title>
+  <style>
+    :root {
+      --bg: #f3ede2;
+      --paper: rgba(255, 252, 246, 0.96);
+      --panel: rgba(245, 239, 230, 0.94);
+      --ink: #15211c;
+      --muted: #5e6c65;
+      --line: rgba(21, 33, 28, 0.12);
+      --teal: #0e6a61;
+      --copper: #9b643b;
+      --warn: #8f5140;
+      --shadow: 0 22px 60px rgba(36, 32, 26, 0.1);
+      --radius: 22px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.7;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(14, 106, 97, 0.1), transparent 26%),
+        radial-gradient(circle at 100% 10%, rgba(155, 100, 59, 0.08), transparent 24%),
+        linear-gradient(180deg, #faf5eb 0%, var(--bg) 100%);
+    }
+
+    a { color: inherit; }
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.06;
+    }
+    h1 { font-size: clamp(2.5rem, 4.6vw, 4.6rem); }
+    h2 { font-size: clamp(1.7rem, 3vw, 2.45rem); }
+    h3 { font-size: 1.08rem; }
+    p { margin: 0; }
+    ul { margin: 0; padding-left: 18px; }
+    li + li { margin-top: 7px; }
+    code, .mono, pre { font-family: Consolas, "SFMono-Regular", monospace; }
+
+    .shell {
+      width: min(calc(100% - 28px), var(--max));
+      margin: 24px auto 40px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero, .section {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(180deg, var(--paper), rgba(245, 239, 230, 0.94));
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    .eyebrow, .tag {
+      display: inline-block;
+      color: var(--copper);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.76rem;
+    }
+
+    .hero-grid, .grid-2, .grid-3 {
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero-grid { grid-template-columns: minmax(0, 1.35fr) minmax(290px, 0.85fr); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .badge-row, .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .badge, .cta, .panel, .card, .callout {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .badge {
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .cta {
+      text-decoration: none;
+      padding: 10px 14px;
+      font-weight: 600;
+    }
+
+    .cta.primary {
+      background: var(--teal);
+      color: #f6fbf9;
+      border-color: transparent;
+    }
+
+    .card, .callout, .panel {
+      padding: 16px 18px;
+    }
+
+    .callout {
+      border-left: 4px solid var(--teal);
+    }
+
+    .warning {
+      color: var(--warn);
+      font-weight: 700;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .work-item {
+      display: grid;
+      gap: 10px;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(255, 252, 246, 0.92);
+    }
+
+    .work-item .id {
+      color: var(--teal);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      overflow: hidden;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(255, 252, 246, 0.88);
+    }
+
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      font-size: 0.86rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: rgba(14, 106, 97, 0.08);
+    }
+
+    tbody tr:last-child td { border-bottom: 0; }
+
+    footer {
+      color: var(--muted);
+      font-size: 0.96rem;
+      padding: 18px 4px 10px;
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hero, .section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">April 10, 2026 · Replay-Derived Companion</div>
+      <div class="hero-grid">
+        <div>
+          <h1>从两条真实任务链反推首个窄而深的 MVP backlog。</h1>
+          <p>这份文档不是新的规范正文，而是从 <a href="v3-design-freeze.html">v3-design-freeze.html</a> 和两条 replay fixture 反推出来的实现 companion。它的目标不是“覆盖所有能力”，而是用最小工作集证明核心不变量真的能在系统里跑通。</p>
+          <div class="badge-row">
+            <div class="badge">Single Agent First</div>
+            <div class="badge">Event Log + Materialized View</div>
+            <div class="badge">Grant + Verify + Recover</div>
+            <div class="badge">Narrow Before Broad</div>
+          </div>
+          <div class="cta-row">
+            <a class="cta primary" href="v3-design-freeze.html">查看 canonical freeze</a>
+            <a class="cta" href="v3-m0-m1-execution-plan.html">M0/M1 execution plan</a>
+            <a class="cta" href="v3-m0-m1-delivery-sheet.html">M0/M1 delivery sheet</a>
+            <a class="cta" href="schemas/examples/flows/research-brief-flow.json">研究简报 replay</a>
+            <a class="cta" href="schemas/examples/flows/crm-followup-flow.json">CRM / Commit replay</a>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <strong>What This Proves</strong>
+            <p>没授权不执行，没验证不完成，失败能收敛，经验能开始编译，且用户注意力不会被无意义打断消耗掉。</p>
+          </div>
+          <div class="card">
+            <strong>What This Avoids</strong>
+            <p>不在第一版同时做多 agent、全兼容层、全量 memory compiler、广覆盖 task taxonomy 和复杂 pack 发行。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">1. Backlog Position</div>
+      <h2>这是实现 companion，不是新的冻结层</h2>
+      <div class="grid-3">
+        <div class="card"><strong>Canonical</strong><p><a href="v3-design-freeze.html">v3-design-freeze.html</a> 仍然是唯一规范正文。</p></div>
+        <div class="card"><strong>Derived</strong><p>本文件把 replay 里的不变量、默认协议和策略面转成实现顺序。</p></div>
+        <div class="card"><strong>Adjustable</strong><p>这里的里程碑、切片和优先级都可改；只要不破坏 canonical freeze 的不变量即可。</p></div>
+      </div>
+      <div class="callout" style="margin-top: 16px;">
+        <p><strong>Backlog Rule:</strong> 如果某项工作不能直接提升“授权、验证、恢复、时间语义、事实语义、事件可追溯”中的至少一项，就不应进入首个 MVP。</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">2. Proof Target</div>
+      <h2>首个 MVP 只需要证明 5 件事</h2>
+      <div class="grid-2">
+        <div class="card">
+          <ul>
+            <li>没有 active grant 的动作不会被 dispatch。</li>
+            <li>没有 verification result 的节点不会进入终态。</li>
+            <li>事实带时间、来源、冲突位点，不会被静默覆盖。</li>
+            <li>不可完全回滚的动作会走 compensation 语义，而不是假装 rollback。</li>
+            <li>单次成功之后，系统能开始积累可验证的 procedure 候选，而不是只积累聊天记录。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Two Replay Targets</strong>
+          <p><span class="mono">Replay A</span>：研究简报链，证明 Observe/Synthesize/Prepare 的闭环。</p>
+          <p style="margin-top: 8px;"><span class="mono">Replay B</span>：CRM 更新 + 受控外发链，证明 Operate/Commit、approval、verification 和 compensation 的闭环。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">3. Explicit Non-Goals</div>
+      <h2>第一阶段明确不做的东西</h2>
+      <div class="grid-3">
+        <div class="card"><span class="warning">Not Now</span><p>多 agent 调度和 merge review 的完整实现。第一阶段只保留 lease / handoff 语义位点。</p></div>
+        <div class="card"><span class="warning">Not Now</span><p>广覆盖生态兼容。只接 replay 必需的本地能力和最小外部系统适配器。</p></div>
+        <div class="card"><span class="warning">Not Now</span><p>全量 memory compiler。第一阶段只支持事实、失败和 procedure draft/trial 候选。</p></div>
+        <div class="card"><span class="warning">Not Now</span><p>像素 fallback 和脆弱 GUI 自动化。第一阶段优先结构化适配器和本地文件能力。</p></div>
+        <div class="card"><span class="warning">Not Now</span><p>多设备、多身份全展开。只保留 principal / owner / approver 位点，不扩展复杂主体系统。</p></div>
+        <div class="card"><span class="warning">Not Now</span><p>动态风险学习和自动调参。第一阶段只实现组合风险函数的静态版本。</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">4. Work Packages</div>
+      <h2>最小实现切片</h2>
+      <div class="stack">
+        <div class="work-item">
+          <div class="id">M0</div>
+          <h3>Replay Harness and Validation Spine</h3>
+          <p>先把 <span class="mono">schemas/</span>、event flow、example validation、fixture replay runner 打通。没有这层，后面每个模块都会按自己的理解实现对象语义。</p>
+          <ul>
+            <li>消费 [schemas/json-schema](C:/Users/84915/device-agent-doc/schemas/json-schema) 和 [schemas/examples](C:/Users/84915/device-agent-doc/schemas/examples)</li>
+            <li>建立 append-only event log 的最小记录格式</li>
+            <li>从事件流物化 TaskNode / Fact / Grant / Receipt / Verification 视图</li>
+            <li>把两条 replay fixture 跑成可审计 timeline</li>
+          </ul>
+          <p><strong>Exit:</strong> 两条 replay 都能被读取、执行为状态推进模拟，并输出一致的 materialized view。</p>
+        </div>
+
+        <div class="work-item">
+          <div class="id">M1</div>
+          <h3>Single-Agent Research Brief Vertical Slice</h3>
+          <p>先做纯 <span class="mono">Observe/Synthesize/Prepare</span> 闭环，避免一上来就陷入 commit 风险和 UX 打断。</p>
+          <ul>
+            <li>Task / TaskNode 生命周期</li>
+            <li>Fact 的时间、来源、TTL、conflict_set、supersedes</li>
+            <li>Grant v0：只支持低风险 scoped grant</li>
+            <li>Selector v0：硬约束 + 默认评分，不做复杂 learning</li>
+            <li>Verifier v0：artifact existence + citation completeness + freshness checks</li>
+            <li>StateCapsule v0：只支持 handoff / resume 的最小验证</li>
+          </ul>
+          <p><strong>Exit:</strong> 研究简报 replay 跑通，且能证明“conflicting facts coexist until verified resolution”。</p>
+        </div>
+
+        <div class="work-item">
+          <div class="id">M2</div>
+          <h3>Controlled Operate / Commit Slice</h3>
+          <p>在 M1 之上引入有限写入和受控提交，验证 Prepare/Commit barrier、approval、rollback/compensate 分流。</p>
+          <ul>
+            <li>组合风险函数 v0：<span class="mono">action × target × context × sequence</span></li>
+            <li>R2 / R3 grant issuance and explicit approval binding</li>
+            <li>Operate adapter：可回读、可回滚的字段写入</li>
+            <li>Commit adapter：不可逆动作的 compensation contract</li>
+            <li>Verifier v1：外部回执 + postcondition + compensation visibility</li>
+          </ul>
+          <p><strong>Exit:</strong> CRM / Commit replay 跑通，且“邮件已发出只能补偿不能回滚”的语义被系统正确表达。</p>
+        </div>
+
+        <div class="work-item">
+          <div class="id">M3</div>
+          <h3>Procedure and Capsule Hardening</h3>
+          <p>不是全量 memory compiler，而是让系统开始从重复成功中产生可测的成本下降。</p>
+          <ul>
+            <li>Procedure draft/trial lifecycle</li>
+            <li>Capsule validator for hard/soft constraints</li>
+            <li>Fact freshness invalidation and stale downgrade</li>
+            <li>Basic attention-budget accounting inside selector</li>
+          </ul>
+          <p><strong>Exit:</strong> 第二次运行同类任务时，selector 能利用 procedure candidate 减少 planner 介入或人工打断。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">5. Concrete Build Order</div>
+      <h2>实现顺序按因果链，而不是按模块名</h2>
+      <table>
+        <thead>
+          <tr><th>Order</th><th>Capability</th><th>Why First</th><th>Replay Coverage</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Event log + projector</td><td>没有事件来源就没有可追溯真相面</td><td>A / B</td></tr>
+          <tr><td>2</td><td>TaskNode transitions</td><td>没有节点语义就无法验证终态</td><td>A / B</td></tr>
+          <tr><td>3</td><td>Grant issuance + lease checks</td><td>没有授权约束就只是工具编排</td><td>A / B</td></tr>
+          <tr><td>4</td><td>Receipt writer + verifier</td><td>没有 receipt / verification 就没有“完成”语义</td><td>A / B</td></tr>
+          <tr><td>5</td><td>Fact time/conflict model</td><td>没有时间语义，长期运行必然被旧事实污染</td><td>A</td></tr>
+          <tr><td>6</td><td>Composite risk scorer</td><td>没有组合风险，Commit 治理会退回静态标签</td><td>B</td></tr>
+          <tr><td>7</td><td>Compensation path</td><td>没有补偿语义，外发类动作无法真实收敛</td><td>B</td></tr>
+          <tr><td>8</td><td>Procedure/capsule hardening</td><td>开始兑现“越用越便宜”的承诺</td><td>A / B</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="tag">6. First Tests</div>
+      <h2>先写哪类测试，决定系统会不会走偏</h2>
+      <div class="grid-2">
+        <div class="card">
+          <strong>Must-Have Tests</strong>
+          <ul>
+            <li>无 grant dispatch 拒绝</li>
+            <li>无 verification terminal transition 拒绝</li>
+            <li>expired fact auto-downgrade</li>
+            <li>conflict facts coexist until explicit resolution</li>
+            <li>commit without approval rejected</li>
+            <li>irreversible send produces compensate path, not fake rollback</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Tests to Delay</strong>
+          <ul>
+            <li>多 agent merge conflict matrix</li>
+            <li>复杂 provider compatibility surface</li>
+            <li>full memory ranking and retrieval tuning</li>
+            <li>GUI pixel fallback robustness</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">7. MVP Exit</div>
+      <h2>什么叫“第一版已经站住”</h2>
+      <div class="grid-3">
+        <div class="card"><strong>Replay A Pass</strong><p>研究简报链跑通，事实有时间语义，冲突可并存，Prepare 产物可验证完成。</p></div>
+        <div class="card"><strong>Replay B Pass</strong><p>CRM 更新和外发链跑通，R2/R3 审批生效，Commit 有 compensation 语义。</p></div>
+        <div class="card"><strong>Cost Signal Appears</strong><p>第二次同类任务比第一次更少打断、更少 planner、更多命中已有结构。</p></div>
+      </div>
+      <div class="callout" style="margin-top: 16px;">
+        <p><strong>Do Not Expand Yet:</strong> 如果这三条还没成立，就不要扩多 agent、广兼容、复杂 pack、分布式或大规模策略调优。那只会把问题从“还没跑通核心语义”变成“系统更大但更难诊断”。</p>
+      </div>
+    </section>
+
+    <footer>
+      文档文件：<strong>C:\Users\84915\device-agent-doc\v3-mvp-backlog.html</strong><br />
+      角色定位：从 canonical freeze 和 replay fixture 反推的非规范实现 companion，用于确定首个窄而深的 MVP backlog。<br />
+      规范正文：<a href="v3-design-freeze.html">v3-design-freeze.html</a>；回放 fixtures：<a href="schemas/examples/flows/research-brief-flow.json">research-brief-flow.json</a>、<a href="schemas/examples/flows/crm-followup-flow.json">crm-followup-flow.json</a>。
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+rust-core/target/
+
+sandbox/local-crm/runtime/
+sandbox/local-crm/runtime-rust/
+sandbox/local-crm/runtime-rust-compensation/
+
+.DS_Store
+Thumbs.db

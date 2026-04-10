@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "task-replay.schema.json",
+  "title": "TaskReplayFixture",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "replay_id",
+    "title",
+    "goal",
+    "task_profile",
+    "nodes",
+    "timeline",
+    "invariants_exercised",
+    "policy_surfaces",
+    "terminal_expectation"
+  ],
+  "properties": {
+    "replay_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+    "title": { "$ref": "./defs.schema.json#/$defs/NonEmptyString" },
+    "goal": { "$ref": "./defs.schema.json#/$defs/NonEmptyString" },
+    "task_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_path",
+        "default_risk_band",
+        "attention_budget_profile"
+      ],
+      "properties": {
+        "task_path": { "$ref": "./defs.schema.json#/$defs/StringList" },
+        "default_risk_band": { "$ref": "./defs.schema.json#/$defs/RiskClass" },
+        "attention_budget_profile": { "$ref": "./defs.schema.json#/$defs/FlexibleObject" }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "node_id",
+          "node_type",
+          "purpose",
+          "risk_band",
+          "expected_terminal"
+        ],
+        "properties": {
+          "node_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+          "node_type": { "$ref": "./defs.schema.json#/$defs/NonEmptyString" },
+          "purpose": { "$ref": "./defs.schema.json#/$defs/NonEmptyString" },
+          "risk_band": { "$ref": "./defs.schema.json#/$defs/RiskClass" },
+          "expected_terminal": { "$ref": "./defs.schema.json#/$defs/TaskState" }
+        }
+      }
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "step",
+          "node_id",
+          "command",
+          "events"
+        ],
+        "properties": {
+          "step": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "node_id": { "$ref": "./defs.schema.json#/$defs/Id" },
+          "command": { "$ref": "./defs.schema.json#/$defs/NonEmptyString" },
+          "events": { "$ref": "./defs.schema.json#/$defs/StringList" },
+          "notes": { "$ref": "./defs.schema.json#/$defs/NonEmptyString" },
+          "invariant_refs": { "$ref": "./defs.schema.json#/$defs/StringList" },
+          "policy_refs": { "$ref": "./defs.schema.json#/$defs/StringList" }
+        }
+      }
+    },
+    "invariants_exercised": { "$ref": "./defs.schema.json#/$defs/StringList" },
+    "policy_surfaces": { "$ref": "./defs.schema.json#/$defs/StringList" },
+    "terminal_expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_terminal",
+        "proof"
+      ],
+      "properties": {
+        "task_terminal": { "$ref": "./defs.schema.json#/$defs/TaskState" },
+        "proof": { "$ref": "./defs.schema.json#/$defs/StringList" },
+        "recovery_mode": { "$ref": "./defs.schema.json#/$defs/RecoveryAction" }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "event_id": "event_verification_recorded_001",
+  "event_type": "verification.recorded",
+  "actor_id": "verifier.report-refresh",
+  "occurred_at": "2026-04-10T11:06:00+08:00",
+  "payload": {
+    "verification_id": "verify_refresh_workbook_001",
+    "result": "verified_success"
+  },
+  "task_id": "task_weekly_report_2026w15",
+  "node_id": "node_refresh_report",
+  "causation_ref": "receipt_refresh_workbook_001",
+  "correlation_ref": "task_weekly_report_2026w15",
+  "trace_ref": "trace_report_refresh_001",
+  "integrity_hint": {
+    "hash": "sha256:example"
+  }
+}

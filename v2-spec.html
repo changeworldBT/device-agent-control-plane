@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sovereign Device Agent v2 Spec</title>
+    <style>
+      :root {
+        --bg: #efe8dc;
+        --paper: rgba(255, 251, 243, 0.92);
+        --panel: rgba(247, 241, 230, 0.92);
+        --ink: #16231e;
+        --muted: #566761;
+        --line: rgba(22, 35, 30, 0.12);
+        --teal: #0f6a61;
+        --copper: #9d6038;
+        --rose: #8a4956;
+        --olive: #66774d;
+        --shadow: 0 24px 70px rgba(45, 45, 38, 0.1);
+        --radius-xl: 28px;
+        --radius-lg: 20px;
+        --radius-md: 14px;
+        --max: 1380px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        line-height: 1.65;
+        background:
+          radial-gradient(circle at top left, rgba(15, 106, 97, 0.08), transparent 26%),
+          radial-gradient(circle at 85% 12%, rgba(157, 96, 56, 0.08), transparent 20%),
+          linear-gradient(180deg, #f7f2e7 0%, var(--bg) 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(22, 35, 30, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(22, 35, 30, 0.03) 1px, transparent 1px);
+        background-size: 36px 36px;
+        opacity: 0.45;
+        pointer-events: none;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: Georgia, "Times New Roman", serif;
+        line-height: 1.08;
+        margin: 0 0 12px;
+      }
+
+      h1 {
+        font-size: clamp(2.2rem, 4vw, 4.3rem);
+      }
+
+      h2 {
+        font-size: clamp(1.75rem, 3vw, 2.7rem);
+      }
+
+      h3 {
+        font-size: 1.2rem;
+      }
+
+      .frame {
+        width: min(calc(100% - 32px), var(--max));
+        margin: 24px auto 40px;
+        display: grid;
+        grid-template-columns: 290px minmax(0, 1fr);
+        gap: 22px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 18px;
+        align-self: start;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        background: linear-gradient(180deg, rgba(255, 251, 243, 0.96), rgba(247, 242, 231, 0.92));
+        box-shadow: var(--shadow);
+      }
+
+      .brand {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 22px;
+      }
+
+      .brand-mark {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        background: linear-gradient(145deg, var(--teal), #18453f);
+        font-family: Consolas, monospace;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+
+      .brand strong,
+      .meta-card strong {
+        display: block;
+      }
+
+      .brand span,
+      .meta-card span,
+      .section-head p,
+      .panel p,
+      .card p,
+      li,
+      td {
+        color: var(--muted);
+      }
+
+      .meta {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 24px;
+      }
+
+      .meta-card,
+      .panel,
+      .card,
+      .code-card,
+      .mini {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: var(--panel);
+      }
+
+      .meta-card,
+      .mini {
+        padding: 12px 14px;
+      }
+
+      .meta-card span {
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.76rem;
+        margin-bottom: 6px;
+      }
+
+      .toc {
+        display: grid;
+        gap: 8px;
+      }
+
+      .toc a {
+        text-decoration: none;
+        color: var(--muted);
+        padding: 10px 12px;
+        border-radius: 12px;
+      }
+
+      .toc a:hover {
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.58);
+        border: 1px solid var(--line);
+      }
+
+      .content {
+        display: grid;
+        gap: 20px;
+      }
+
+      .hero,
+      .section {
+        padding: 28px;
+        border-radius: 30px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, var(--paper), rgba(247, 242, 231, 0.94));
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .hero {
+        position: relative;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        right: -60px;
+        bottom: -80px;
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, rgba(15, 106, 97, 0.15), transparent 70%);
+      }
+
+      .eyebrow,
+      .tag,
+      .kicker {
+        color: var(--copper);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 0.78rem;
+      }
+
+      .tag,
+      .kicker {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      .hero-grid,
+      .grid-2,
+      .grid-3,
+      .split,
+      .pkg-grid {
+        display: grid;
+        gap: 18px;
+      }
+
+      .hero-grid {
+        grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
+        align-items: start;
+      }
+
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .split {
+        grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      }
+
+      .pkg-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .panel,
+      .card,
+      .code-card {
+        padding: 18px 20px;
+      }
+
+      .hero p {
+        max-width: 900px;
+        font-size: 1.04rem;
+      }
+
+      .badge-row,
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .badge,
+      .pill,
+      .decision,
+      .warning {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 0.9rem;
+      }
+
+      .badge,
+      .pill {
+        background: rgba(255, 255, 255, 0.66);
+        border: 1px solid var(--line);
+      }
+
+      .decision {
+        background: rgba(15, 106, 97, 0.1);
+        color: var(--teal);
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .warning {
+        background: rgba(138, 73, 86, 0.1);
+        color: var(--rose);
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        border-radius: 14px;
+        text-decoration: none;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.78);
+        font-weight: 600;
+      }
+
+      .cta.primary {
+        background: linear-gradient(135deg, var(--teal), #17423d);
+        color: #fff;
+        border-color: transparent;
+      }
+
+      .section-head {
+        margin-bottom: 18px;
+      }
+
+      .topology {
+        width: 100%;
+        overflow: auto;
+        border-radius: 22px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(247, 242, 231, 0.82));
+        padding: 12px;
+      }
+
+      svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .module-grid,
+      .checklist,
+      .state-strip,
+      .comparison-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .module {
+        display: grid;
+        grid-template-columns: 180px minmax(0, 1fr) 220px;
+        gap: 16px;
+        padding: 16px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.56);
+      }
+
+      .state-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .state,
+      .check {
+        padding: 14px 16px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.56);
+      }
+
+      .state strong,
+      .check strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      pre,
+      .mono {
+        font-family: Consolas, "SFMono-Regular", monospace;
+      }
+
+      pre {
+        margin: 0;
+        overflow: auto;
+        padding: 16px;
+        border-radius: 16px;
+        background: #16231e;
+        color: #ebf5ef;
+        font-size: 0.92rem;
+        line-height: 1.55;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        font-size: 0.84rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .flow-note {
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-left: 4px solid var(--teal);
+        border-radius: 0 14px 14px 0;
+        background: rgba(15, 106, 97, 0.08);
+      }
+
+      footer {
+        padding: 12px 6px 2px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      @media (max-width: 1160px) {
+        .frame {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: static;
+        }
+      }
+
+      @media (max-width: 920px) {
+        .hero-grid,
+        .grid-2,
+        .grid-3,
+        .split,
+        .pkg-grid,
+        .module,
+        .state-strip {
+          grid-template-columns: 1fr;
+        }
+
+        .hero,
+        .section {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">SV</div>
+          <div>
+            <strong>Sovereign Device Agent</strong>
+            <span>v2 engineering specification</span>
+          </div>
+        </div>
+
+        <div class="meta">
+          <div class="meta-card">
+            <span>Scope</span>
+            <strong>Windows-first, single-user, single-device</strong>
+          </div>
+          <div class="meta-card">
+            <span>Default Runtime</span>
+            <strong>Rules-first local core + on-demand cloud planner</strong>
+          </div>
+          <div class="meta-card">
+            <span>Primary Goal</span>
+            <strong>Efficient, safe, low-power, fully operable control</strong>
+          </div>
+        </div>
+
+        <nav class="toc">
+          <a href="#north-star">设计边界</a>
+          <a href="#reference-stack">历史参考实现</a>
+          <a href="#module-map">模块边界</a>
+          <a href="#state-machine">状态机</a>
+          <a href="#ipc">IPC 契约</a>
+          <a href="#ticket">能力票据</a>
+          <a href="#sandbox">隔离拓扑</a>
+          <a href="#scheduler">调度与功耗</a>
+          <a href="#memory">长期记忆</a>
+          <a href="#reliability">失败处理</a>
+          <a href="#refinements">借鉴点</a>
+          <a href="#comparison">生态对比</a>
+          <a href="#packages">代码结构</a>
+          <a href="#acceptance">验收门槛</a>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <section class="hero">
+          <div class="eyebrow">April 8, 2026 · historical implementation-grade specification</div>
+          <div class="hero-grid">
+            <div>
+              <h1>把“设备级 agent”收敛成一套可实现的主权执行平面。</h1>
+              <p>
+                这份文档记录当时收敛出的 v1 参考实现思路，保留较强实现偏好，供今天回看取舍。核心原则只有一句：
+                <strong>智能可以变化，权限边界必须稳定。</strong>
+                因此当时的实现判断是规则优先、本地常驻、票据驱动、分级隔离和可回滚执行。
+              </p>
+              <div class="badge-row">
+                <div class="badge">Surface: API &gt; UIA/DOM &gt; Browser &gt; Pixels</div>
+                <div class="badge">Mode: Direct &gt; Script &gt; Macro &gt; L2 planner</div>
+                <div class="badge">Local IPC: Named pipes + stdio JSON</div>
+                <div class="badge">State store: SQLite WAL</div>
+              </div>
+              <div class="cta-row">
+                <a class="cta primary" href="v3-design-freeze.html">查看 v3 正式冻结规范</a>
+                <a class="cta" href="v3-direction.html">查看 v3 转向理由稿</a>
+                <a class="cta" href="index.html">返回概览蓝图</a>
+              </div>
+            </div>
+            <div class="comparison-list">
+              <div class="mini"><strong>v1 范围</strong><br />单用户、单设备、Windows 优先。本地守护进程负责边界，高风险动作走隔离执行器。</div>
+              <div class="mini"><strong>明确不做</strong><br />不做长期 root，不做持续截图轮询，不做分布式编排，不做“所有动作都交给前沿模型”。</div>
+              <div class="mini"><strong>当时默认云后端</strong><br />只把 OpenAI Responses API + shell/computer 放进默认控制路径。其他 provider 保留兼容目标。</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="north-star">
+          <div class="section-head">
+            <div class="tag">System Boundary</div>
+            <h2>设计边界先固定，再谈智能</h2>
+            <p>
+              全权操作设备不是“一个模型拿到最大权限”，而是系统在边界内覆盖感知、规划、执行、约束和回滚。下面所有模块都服从这个前提。
+            </p>
+          </div>
+          <div class="grid-3">
+            <div class="card">
+              <span class="kicker">North Star</span>
+              <h3>Authority lives in the kernel</h3>
+              <p>真正的控制权只属于本地守护内核。planner 只能提出计划和受限工具请求，不能直接拥有主机权限。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Power Baseline</span>
+              <h3>CPU-only 必须可运行</h3>
+              <p>低功耗基线是事件路由器、缓存、宏和规则引擎，不是本地小模型。模型只是可选增强层。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Recovery First</span>
+              <h3>Every write needs a way back</h3>
+              <p>任何写操作都必须绑定 postcondition 和补偿路径。无法回滚的动作先草稿、再确认、最后提交。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="reference-stack">
+          <div class="section-head">
+            <div class="tag">Historical Reference Implementation</div>
+            <h2>v1 参考实现思路</h2>
+            <p>这部分记录当时偏好的实现路径，供当前规范回看和取舍，不再是默认实现要求。</p>
+          </div>
+          <div class="grid-2">
+            <div class="panel">
+              <div class="decision">Host Core</div>
+              <h3>Rust + Tokio daemon</h3>
+              <p>负责事件订阅、任务状态机、票据发放、执行编排、审计和回滚。优点是低常驻开销、长时间运行稳定、并发可控。</p>
+            </div>
+            <div class="panel">
+              <div class="decision">State + Policy</div>
+              <h3>SQLite WAL + Cedar policies</h3>
+              <p>状态索引、记忆索引、宏、工件索引和审计链落到 SQLite；每个任务再保留 append-only JSONL 时间线用于重放、导出和旋转归档。策略用 Cedar 表达 scope、resource、approval 和风险条件。</p>
+            </div>
+            <div class="panel">
+              <div class="decision">Local Reflex</div>
+              <h3>Rules-first router, optional small model</h3>
+              <p>默认由规则、缓存、宏和风险矩阵常驻；有 GPU/NPU 时，再接小模型做分类、摘要和状态压缩。</p>
+            </div>
+            <div class="panel">
+              <div class="decision">Cloud Planner</div>
+              <h3>OpenAI Responses API + shell/computer</h3>
+              <p>只处理复杂、陌生、跨应用长链任务。返回计划、校验标准和有边界的工具请求，不直接控制本机。</p>
+            </div>
+            <div class="panel">
+              <div class="decision">Config + Diagnostics</div>
+              <h3>User / project / local hierarchy + doctor</h3>
+              <p>配置分为全局、项目、本地临时覆盖三层，运行时只消费合并后的 typed config。内建 <span class="mono">doctor</span>、<span class="mono">status</span>、<span class="mono">sandbox</span> 诊断面，不把故障排查留给猜测。</p>
+            </div>
+            <div class="panel">
+              <div class="decision">Parity Harness</div>
+              <h3>Deterministic mock provider + executor harness</h3>
+              <p>任何 provider、执行器、审批和回滚路径都先走可重放的 mock parity harness，再进入真实设备。这样验证的是系统契约，而不是一次偶然成功。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="module-map">
+          <div class="section-head">
+            <div class="tag">Module Ownership</div>
+            <h2>模块边界</h2>
+            <p>planner、broker、executor 三者不能共用主权。每个模块只负责一层因果，不跨权操作。</p>
+          </div>
+
+          <div class="topology">
+            <svg viewBox="0 0 1320 520" width="100%" role="img" aria-label="Sovereign device agent topology">
+              <defs>
+                <linearGradient id="g1" x1="0" x2="1">
+                  <stop offset="0%" stop-color="#0f6a61" stop-opacity="0.96" />
+                  <stop offset="100%" stop-color="#18453f" stop-opacity="0.98" />
+                </linearGradient>
+                <linearGradient id="g2" x1="0" x2="1">
+                  <stop offset="0%" stop-color="#9d6038" stop-opacity="0.92" />
+                  <stop offset="100%" stop-color="#7a4928" stop-opacity="0.96" />
+                </linearGradient>
+                <linearGradient id="g3" x1="0" x2="1">
+                  <stop offset="0%" stop-color="#16231e" stop-opacity="0.97" />
+                  <stop offset="100%" stop-color="#21352f" stop-opacity="0.97" />
+                </linearGradient>
+                <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#52635d" />
+                </marker>
+              </defs>
+
+              <rect x="24" y="20" width="1272" height="478" rx="30" fill="rgba(255,255,255,0.48)" stroke="rgba(22,35,30,0.12)" />
+              <rect x="56" y="58" width="1208" height="108" rx="24" fill="url(#g1)" />
+              <text x="88" y="96" fill="#d9ece7" font-family="Consolas, monospace" font-size="14" letter-spacing="2">L2 PLANNING FABRIC</text>
+              <text x="88" y="134" fill="#ffffff" font-family="Georgia, serif" font-size="30" font-weight="700">Cloud planner returns plans, checks, bounded tool requests</text>
+              <text x="88" y="158" fill="rgba(255,255,255,0.78)" font-family="Segoe UI, sans-serif" font-size="16">No direct host authority. No secrets. No standing sessions.</text>
+
+              <rect x="56" y="196" width="1208" height="112" rx="24" fill="url(#g2)" />
+              <text x="88" y="234" fill="#f7ece4" font-family="Consolas, monospace" font-size="14" letter-spacing="2">L1 REFLEX FABRIC</text>
+              <text x="88" y="272" fill="#ffffff" font-family="Georgia, serif" font-size="30" font-weight="700">Rules-first router decides surface, mode, and whether L2 is needed</text>
+              <text x="88" y="296" fill="rgba(255,255,255,0.8)" font-family="Segoe UI, sans-serif" font-size="16">Cache hit, macro hit, risk tier, and hardware tier are decided here.</text>
+
+              <rect x="56" y="336" width="1208" height="120" rx="24" fill="url(#g3)" />
+              <text x="88" y="374" fill="#d4e5de" font-family="Consolas, monospace" font-size="14" letter-spacing="2">L0 AUTHORITY FABRIC</text>
+              <text x="88" y="412" fill="#ffffff" font-family="Georgia, serif" font-size="31" font-weight="700">Broker, tickets, executors, verifier, audit log, rollback pointers</text>
+              <text x="88" y="436" fill="rgba(255,255,255,0.78)" font-family="Segoe UI, sans-serif" font-size="16">This is the only layer allowed to touch secrets, approvals, and irreversible actions.</text>
+
+              <rect x="968" y="72" width="250" height="80" rx="18" fill="rgba(255,255,255,0.74)" stroke="rgba(22,35,30,0.12)" />
+              <text x="990" y="102" fill="#0f6a61" font-family="Consolas, monospace" font-size="13">DEFAULT BACKEND</text>
+              <text x="990" y="130" fill="#16231e" font-family="Segoe UI, sans-serif" font-size="18" font-weight="600">OpenAI Responses + shell/computer</text>
+
+              <rect x="968" y="210" width="250" height="82" rx="18" fill="rgba(255,255,255,0.74)" stroke="rgba(22,35,30,0.12)" />
+              <text x="990" y="240" fill="#9d6038" font-family="Consolas, monospace" font-size="13">CPU BASELINE</text>
+              <text x="990" y="268" fill="#16231e" font-family="Segoe UI, sans-serif" font-size="18" font-weight="600">Rules, caches, macros always work</text>
+
+              <line x1="430" y1="166" x2="430" y2="196" stroke="#52635d" stroke-width="3" marker-end="url(#arrow)" />
+              <line x1="780" y1="308" x2="780" y2="336" stroke="#52635d" stroke-width="3" marker-end="url(#arrow)" />
+            </svg>
+          </div>
+
+          <div class="module-grid" style="margin-top: 18px">
+            <div class="module">
+              <div><strong>Event Ingest</strong><br /><span class="mono">window / file / timer / notification</span></div>
+              <div>把原始系统事件标准化成 <span class="mono">EventEnvelope</span>，去噪、聚合、附上来源和时间戳，不做权限判断。</div>
+              <div>失败模式：噪声过高。对策：去重、节流、优先级队列。</div>
+            </div>
+            <div class="module">
+              <div><strong>Reflex Router</strong><br /><span class="mono">surface + mode chooser</span></div>
+              <div>根据缓存、宏、风险、硬件和可用表面，决定走 API、UIA/DOM、浏览器还是像素，并决定 direct/script/macro/L2。</div>
+              <div>失败模式：误升级昂贵路径。对策：强制 surface order 和 budget policy。</div>
+            </div>
+            <div class="module">
+              <div><strong>Capability Broker</strong><br /><span class="mono">policy + approval gate</span></div>
+              <div>依据策略、风险等级和审批结果发放短期 <span class="mono">CapabilityTicket</span>，并写入审计链。</div>
+              <div>失败模式：策略绕过。对策：所有 executor 先验票再执行。</div>
+            </div>
+            <div class="module">
+              <div><strong>Plugin + Skill Manager</strong><br /><span class="mono">manifest + lifecycle</span></div>
+              <div>插件和技能通过显式 manifest 注册能力、hook、生命周期和所需权限。扩展可以存在，但扩展不能越过主权边界。</div>
+              <div>失败模式：扩展失控。对策：manifest 权限声明 + 独立健康检查 + 可禁用。</div>
+            </div>
+            <div class="module">
+              <div><strong>Degraded Lifecycle Monitor</strong><br /><span class="mono">partial availability</span></div>
+              <div>对 browser、MCP、plugin、VM executor 的启动、握手、发现、调用和关闭阶段做生命周期跟踪，输出 degraded report，而不是全局 hard fail。</div>
+              <div>失败模式：一个子系统挂掉拖垮全局。对策：phase-based health + available/missing capability report。</div>
+            </div>
+            <div class="module">
+              <div><strong>Recovery Coordinator</strong><br /><span class="mono">recipe registry</span></div>
+              <div>把已知故障映射成 recovery recipe，例如重试握手、重建 worker、重新绑定表面、请求人工确认。默认只自动恢复一次，避免死循环。</div>
+              <div>失败模式：无穷重试。对策：single auto-recovery budget + escalation policy。</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="state-machine">
+          <div class="section-head">
+            <div class="tag">Lifecycle</div>
+            <h2>统一状态机</h2>
+            <p>稳定性来自状态机，而不是提示词。任何模块都只能推动状态前进，不能绕过状态机直接做事。</p>
+          </div>
+          <div class="state-strip">
+            <div class="state"><strong>1. observed</strong>事件进入队列，附带来源和时序。</div>
+            <div class="state"><strong>2. normalized</strong>去噪、聚合、标准化。</div>
+            <div class="state"><strong>3. triaged</strong>计算风险、预算、硬件档位、缓存/宏命中。</div>
+            <div class="state"><strong>4. planned</strong>形成 direct/script/macro plan 或 L2 draft。</div>
+            <div class="state"><strong>5. approved</strong>broker 验策略，必要时获取用户审批，签出 ticket。</div>
+            <div class="state"><strong>6. executing</strong>执行器持 ticket 逐步动作，写 receipt。</div>
+            <div class="state"><strong>7. verifying</strong>按 postcondition 重读状态，决定成功或失败。</div>
+            <div class="state"><strong>8. completed</strong>落审计、更新宏、更新摘要。</div>
+            <div class="state"><strong>9. failed / rolled_back</strong>失败入 quarantine，必要时补偿或回滚。</div>
+          </div>
+          <div class="flow-note">
+            审批只发生在 <strong>planned -&gt; approved</strong>，一旦 ticket 过期，状态必须退回 triaged 或 failed。
+          </div>
+        </section>
+
+        <section class="section" id="ipc">
+          <div class="section-head">
+            <div class="tag">IPC Contracts</div>
+            <h2>本地 IPC 契约</h2>
+            <p>单设备 Windows 场景下，本地 RPC 的目标不是横向扩展，而是低复杂度、低暴露面和可调试。</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Boundary</th>
+                <th>Transport</th>
+                <th>Payload</th>
+                <th>Why This Wins</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>UI / local client -&gt; core daemon</td>
+                <td><span class="mono">Windows named pipe</span></td>
+                <td>versioned JSON message envelope</td>
+                <td>仅本机可见，无需开放端口，权限边界和调试都足够清晰。</td>
+              </tr>
+              <tr>
+                <td>Core daemon -&gt; child worker</td>
+                <td><span class="mono">stdin/stdout JSON lines</span></td>
+                <td><span class="mono">ExecutionStep</span> / <span class="mono">CapabilityTicket</span> / <span class="mono">ExecutionReceipt</span></td>
+                <td>适合 Playwright、PowerShell、Python worker 这种短命子进程，没有额外服务发现成本。</td>
+              </tr>
+              <tr>
+                <td>Core daemon -&gt; isolated browser</td>
+                <td><span class="mono">named pipe + artifact folder</span></td>
+                <td>control JSON + traces / screenshots / DOM snapshots</td>
+                <td>控制流和大体积工件分离，方便重放、裁剪和审计。</td>
+              </tr>
+              <tr>
+                <td>Core daemon -&gt; disposable VM worker</td>
+                <td><span class="mono">ephemeral pipe bridge</span></td>
+                <td>scoped commands + short-lived tokens</td>
+                <td>VM 生命周期短，不值得引入长期 agent 协议。</td>
+              </tr>
+              <tr>
+                <td>Core daemon -&gt; cloud planner</td>
+                <td><span class="mono">HTTPS</span></td>
+                <td>scrubbed context + bounded tool manifest</td>
+                <td>天然适合 provider 边界，也便于和本地主权层隔离。</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="split" style="margin-top: 18px">
+            <div class="code-card">
+              <strong>Named pipe request envelope</strong>
+              <pre>{
+  "v": 1,
+  "kind": "SubmitTask",
+  "request_id": "req_20260408_0007",
+  "caller": "desktop-console",
+  "body": {
+    "goal": "rename invoices by rule",
+    "risk": "medium",
+    "constraints": ["workdir only", "undoable"],
+    "budget": { "max_cloud_calls": 0, "max_runtime_sec": 25 }
+  }
+}</pre>
+            </div>
+            <div class="code-card">
+              <strong>Worker stdio protocol</strong>
+              <pre>{"kind":"StartStep","step_id":"step_17","ticket":"cap_abc"}
+{"kind":"Heartbeat","step_id":"step_17","ts":"2026-04-08T15:14:01Z"}
+{"kind":"Receipt","step_id":"step_17","ok":true,"artifacts":["dom.json"]}
+{"kind":"Exit","code":0}</pre>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="ticket">
+          <div class="section-head">
+            <div class="tag">Capability Ticket</div>
+            <h2>能力票据</h2>
+            <p>任务不是最小权限单位，步骤才是。每个可执行步骤都必须绑定 ticket。</p>
+          </div>
+          <div class="grid-2">
+            <div class="panel">
+              <div class="decision">Ticket fields</div>
+              <ul>
+                <li><strong>scope</strong>：例如 <span class="mono">filesystem.rename</span>、<span class="mono">browser.click</span>。</li>
+                <li><strong>resource_bound</strong>：路径、窗口、域名、账户、进程等资源约束。</li>
+                <li><strong>ttl_sec</strong>：默认 60 到 300 秒，超时即失效。</li>
+                <li><strong>sandbox_tier</strong>：<span class="mono">host-limited</span>、<span class="mono">browser-isolated</span>、<span class="mono">vm-ephemeral</span>。</li>
+                <li><strong>approval_ref</strong>：关联用户确认、策略白名单或批次预授权。</li>
+                <li><strong>policy_context</strong>：记录 rule/hook/health gate 对本次动作的附加限制。</li>
+                <li><strong>audit_id</strong>：全链路审计和回滚锚点。</li>
+              </ul>
+            </div>
+            <div class="code-card">
+              <strong>CapabilityTicket example</strong>
+              <pre>{
+  "ticket_id": "cap_20260408_311",
+  "task_id": "tsk_20260408_118",
+  "step_id": "step_03",
+  "scope": ["filesystem.rename"],
+  "resource_bound": {
+    "root": "C:\\Users\\84915\\Invoices",
+    "glob": "*.pdf"
+  },
+  "ttl_sec": 180,
+  "sandbox_tier": "host-limited",
+  "approval_ref": "apr_rule_batch_07",
+  "policy_context": ["desktop_ready", "same_window", "no_external_network"],
+  "audit_id": "aud_9f3e4",
+  "postcondition": ["all targets renamed", "undo manifest written"]
+}</pre>
+            </div>
+          </div>
+          <div class="grid-3" style="margin-top: 18px">
+            <div class="card">
+              <span class="kicker">Issue</span>
+              <h3>Broker signs ticket</h3>
+              <p>planner 不能签票，executor 也不能自签。只有 broker 在策略和审批都满足时发票。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Verify</span>
+              <h3>Executor validates locally</h3>
+              <p>执行器在每一步开始前本地验签、验 TTL、验资源范围，任何一项不符立即拒绝。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Expire</span>
+              <h3>Ticket expiry is a hard stop</h3>
+              <p>票据过期后不允许自动续签。系统必须回到 triage 或 human gate，避免静默权限升级。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="sandbox">
+          <div class="section-head">
+            <div class="tag">Isolation Topology</div>
+            <h2>隔离拓扑</h2>
+            <p>隔离是分级释放，不是二元切换。不是所有风险都直接上 VM。</p>
+          </div>
+          <div class="grid-2">
+            <div class="panel">
+              <div class="decision">Isolation ladder</div>
+              <ol>
+                <li><strong>host-limited</strong>：普通读操作、低风险写操作，宿主最小权限。</li>
+                <li><strong>browser-isolated</strong>：陌生网页、站点登录、跨域自动化，独立浏览器 profile 与下载目录。</li>
+                <li><strong>app-container</strong>：来源不明但无需整机环境的桌面应用或脚本。</li>
+                <li><strong>vm-ephemeral</strong>：安装包、输入凭据、远程连接、高风险第三方集成。</li>
+              </ol>
+            </div>
+            <div class="panel">
+              <div class="warning">Do not do this</div>
+              <h3>两个常见错误</h3>
+              <p>一是所有动作都在宿主跑，最后靠“模型谨慎”补安全；二是凡是风险就全进 VM，最后连稳定自动化都变得过慢过重。</p>
+              <p>正确做法是用票据限制“能做什么”，再用隔离降低“做错损失有多大”。</p>
+            </div>
+          </div>
+          <div class="code-card" style="margin-top: 18px">
+            <strong>Isolation routing rule</strong>
+            <pre>if action in HIGH_RISK or input_credentials or install_package:
+    sandbox = "vm-ephemeral"
+elif browser_surface and site_trust != "known-good":
+    sandbox = "browser-isolated"
+elif desktop_binary and publisher_unknown:
+    sandbox = "app-container"
+else:
+    sandbox = "host-limited"</pre>
+          </div>
+        </section>
+
+        <section class="section" id="scheduler">
+          <div class="section-head">
+            <div class="tag">Power + Scheduling</div>
+            <h2>调度与功耗</h2>
+            <p>真正决定功耗的是事件密度、截图频率、云调用时机和重复流程是否被宏化。</p>
+          </div>
+          <div class="split">
+            <div class="code-card">
+              <strong>Scheduler policy</strong>
+              <pre>loop:
+  evt = next_event()
+  env = normalize(evt)
+  if cache_hit(env):
+      dispatch(cache_plan)
+      continue
+  if macro_hit(env):
+      dispatch(macro_plan)
+      continue
+  if deterministic_surface_exists(env):
+      dispatch(script_or_direct_plan)
+      continue
+  if risk_high(env) and no_approval(env):
+      park_for_human()
+      continue
+  if budget_allows_cloud(env):
+      dispatch(l2_plan_request)
+  else:
+      park_or_degrade()</pre>
+            </div>
+            <div class="checklist">
+              <div class="check">
+                <strong>CPU-only tier</strong>
+                常驻只有事件监听、规则引擎、缓存、宏和 SQLite。无持续截图，无常驻云连线。
+              </div>
+              <div class="check">
+                <strong>GPU/NPU tier</strong>
+                小模型只处理摘要、分类、候选计划重排和轻量问答，不接管执行主权。
+              </div>
+              <div class="check">
+                <strong>Cloud budget</strong>
+                每个任务显式声明最大云调用次数、最大截图数、最大运行时长，超出则降级或暂停。
+              </div>
+              <div class="check">
+                <strong>Macro promotion</strong>
+                连续成功且无人工修正的重复流程才允许升格为宏，并必须带回归样例。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="memory">
+          <div class="section-head">
+            <div class="tag">Long-Term Memory</div>
+            <h2>长期记忆必须是类型化、受控、可撤销的</h2>
+            <p>
+              设备级 agent 不能把“长期记忆”理解成无限聊天记录。真正可用的长期记忆应该是
+              <strong>按类型分层、按价值晋升、按作用域检索、按证据失效</strong>。
+              这样记住的是稳定事实、偏好、流程和故障经验，而不是把全部上下文永久囤积。
+            </p>
+          </div>
+          <div class="grid-2">
+            <div class="panel">
+              <div class="decision">Five-layer memory model</div>
+              <ul>
+                <li><strong>Policy memory</strong>：长期规则、审批偏好、禁区、默认预算、风险偏好。</li>
+                <li><strong>Semantic memory</strong>：设备、应用、账户、目录、网站、联系人、常用实体之间的稳定关系。</li>
+                <li><strong>Procedural memory</strong>：成功 workflow macro、恢复配方、已验证执行路径。</li>
+                <li><strong>Episodic memory</strong>：最近任务摘要、故障经过、人工纠正记录、异常事件。</li>
+                <li><strong>Trust memory</strong>：站点/应用/目录/插件/执行器的信任级、健康级和历史稳定性。</li>
+              </ul>
+            </div>
+            <div class="panel">
+              <div class="warning">Not raw transcript</div>
+              <h3>什么不应进入长期记忆</h3>
+              <ul>
+                <li>原始全量对话和整屏截图不直接升格为长期记忆。</li>
+                <li>密钥、密码、完整 token、原始 cookie、未脱敏凭据不写入记忆层。</li>
+                <li>一次性上下文、未验证猜测、单次失败后的幻觉结论不应长期保留。</li>
+                <li>高敏感内容只保留句柄、摘要或 provenance，不保留明文。</li>
+              </ul>
+            </div>
+          </div>
+          <div class="split" style="margin-top: 18px">
+            <div class="code-card">
+              <strong>MemoryRecord</strong>
+              <pre>{
+  "memory_id": "mem_20260408_41",
+  "type": "procedural",
+  "scope": ["device:primary", "app:outlook", "workspace:work"],
+  "key": "send_internal_status_update",
+  "summary": "Use draft-first flow, internal recipients only",
+  "confidence": 0.91,
+  "sensitivity": "medium",
+  "source_refs": ["aud_9f3e4", "tsk_20260408_118"],
+  "last_validated_at": "2026-04-08T14:31:00Z",
+  "expires_at": null,
+  "promotion_rule": "3 clean successes",
+  "revocation_rule": "any external-send mismatch"
+}</pre>
+            </div>
+            <div class="code-card">
+              <strong>Promotion pipeline</strong>
+              <pre>candidate -> validate -> promote -> refresh -> expire/revoke
+
+if repeated and verified and low_contradiction:
+    promote(memory)
+elif contradicted or stale:
+    lower_confidence(memory)
+if confidence < threshold or revoked:
+    archive(memory)</pre>
+            </div>
+          </div>
+          <div class="grid-3" style="margin-top: 18px">
+            <div class="card">
+              <span class="kicker">Write Gate</span>
+              <h3>不是每次交互都记住</h3>
+              <p>只有满足重复、价值高、被验证、被用户确认或持续稳定的内容，才允许从 episodic 提升到 semantic / procedural。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Retrieval</span>
+              <h3>按任务阶段取不同记忆</h3>
+              <p>规划前取 policy + semantic，执行前取 procedural + trust，失败后取 episodic + recovery。避免全量召回污染当前任务。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Forgetting</span>
+              <h3>遗忘是功能，不是 bug</h3>
+              <p>Episodic 默认 TTL，semantic/procedural 需要定期再验证；一旦环境变化或被反证，记忆必须降权、失效或撤销。</p>
+            </div>
+          </div>
+          <div class="flow-note">
+            记忆层和会话层要分开：<strong>sessionlog</strong> 负责完整可回放，<strong>memory</strong> 负责长期可检索。前者保存经过，后者保存结论，而且结论必须带证据和失效条件。
+          </div>
+        </section>
+
+        <section class="section" id="reliability">
+          <div class="section-head">
+            <div class="tag">Reliability</div>
+            <h2>失败处理</h2>
+            <p>设备级 agent 最贵的不是一次失败，而是“做了一半、状态未知、权限还没收回”。</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Failure type</th>
+                <th>Primary response</th>
+                <th>Required artifact</th>
+                <th>Escalation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ticket expired mid-flight</td>
+                <td>立即停止下一步动作，标记当前步为 interrupted</td>
+                <td>step receipt + current state snapshot</td>
+                <td>返回 triaged 或要求重新审批</td>
+              </tr>
+              <tr>
+                <td>Postcondition timeout</td>
+                <td>执行独立重读，不重复写操作</td>
+                <td>read-after-write evidence</td>
+                <td>进入 failed，再决定补偿或人工介入</td>
+              </tr>
+              <tr>
+                <td>Executor crash</td>
+                <td>回收票据，终止相关 worker，保留工件</td>
+                <td>stdout tail, trace, last heartbeat</td>
+                <td>同类动作进入 quarantine</td>
+              </tr>
+              <tr>
+                <td>Planner proposes out-of-scope step</td>
+                <td>broker 直接拒绝，不进入执行</td>
+                <td>rejected plan draft</td>
+                <td>降级为 deterministic path 或人工确认</td>
+              </tr>
+              <tr>
+                <td>Rollback failed</td>
+                <td>冻结相关资源，阻止后续自动动作</td>
+                <td>compensation receipt + diff</td>
+                <td>强制人工接管</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flow-note">
+            所有失败最终都要落到三种结局之一：<strong>安全回退</strong>、<strong>人工接管</strong>、<strong>隔离重试</strong>。不能存在“不知道现在是什么状态”的悬空态。默认策略是 <strong>一次自动恢复 + 明确升级</strong>，而不是无限重试。
+          </div>
+        </section>
+
+        <section class="section" id="refinements">
+          <div class="section-head">
+            <div class="tag">Refinements From Claw Code</div>
+            <h2>从公开 rewrite 里抽出来的可借鉴工程点</h2>
+            <p>
+              这里借鉴的不是它的产品定位，而是它在工程组织上的几个成熟模式。它更像 coding harness；我们只吸收对设备代理同样成立的结构化经验。
+            </p>
+          </div>
+          <div class="grid-2">
+            <div class="panel">
+              <div class="decision">Borrow</div>
+              <h3>应该吸收的部分</h3>
+              <ul>
+                <li>把运行时、provider、tools、plugins、commands、telemetry、compat-harness 分开，不把所有逻辑塞进一个主二进制。</li>
+                <li>把 degraded mode 作为一等公民处理，允许部分能力缺席但整体继续运行。</li>
+                <li>保留 append-only 时间线，便于重放、导出、事故排查和会话恢复。</li>
+                <li>维护显式 recovery recipe，而不是把故障恢复留给隐式 prompt 技巧。</li>
+                <li>内建 doctor / status / sandbox 诊断面，缩短运维回路。</li>
+                <li>先做 mock parity harness，再碰真实 provider 和真实设备。</li>
+              </ul>
+            </div>
+            <div class="panel">
+              <div class="warning">Do not import blindly</div>
+              <h3>不应该照搬的部分</h3>
+              <ul>
+                <li>不照搬 coding-agent 的命令面膨胀。设备代理的核心界面应该更少、更稳。</li>
+                <li>不照搬默认高权限。设备代理必须坚持 capability ticket，而不是以 `danger-full-access` 为常态。</li>
+                <li>不把工作区级权限模型直接当成设备级权限模型。文件写权限不等于设备动作授权。</li>
+                <li>不把“会话恢复”误当成“系统恢复”。设备代理还需要表面绑定、执行器健康和回滚补偿。</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="comparison">
+          <div class="section-head">
+            <div class="tag">Landscape Comparison</div>
+            <h2>和 Claw Code、OpenClaw、Claude Code、Codex、OpenCode 的关系</h2>
+            <p>这套设计不是另一个 coding agent，而是设备级主权控制层。下面会直接说明差异和优势。</p>
+          </div>
+          <div class="grid-2">
+            <div class="panel">
+              <div class="decision">Positioning</div>
+              <h3>它解决的问题层级更低</h3>
+              <p>OpenClaw 偏个人助理入口，Claude Code / Codex / OpenCode 偏编码 agent 或 agent harness；这套设计偏“设备级自治执行平面”。</p>
+              <p>也就是说，它不是要替代这些工具的全部体验，而是给“长期自治 + 整机控制”补上它们通常不作为第一优先级去解决的那层结构。</p>
+            </div>
+            <div class="panel">
+              <div class="decision">Core advantage</div>
+              <h3>主权边界比模型能力更靠前</h3>
+              <p>这里优先设计的是 capability ticket、统一状态机、分级隔离、低功耗调度、可恢复失败，而不是先追求能跑通更多 demo。</p>
+            </div>
+          </div>
+          <table style="margin-top: 18px">
+            <thead>
+              <tr>
+                <th>System</th>
+                <th>Primary center of gravity</th>
+                <th>What it is best at</th>
+                <th>Where this design is stronger</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Claw Code</td>
+                <td>公开 Rust rewrite 的 coding harness</td>
+                <td>crate 拆分清晰，provider/runtime/tools/plugins/parity-harness 工程组织成熟</td>
+                <td>设备主权边界、逐步授权、分级隔离、真实设备恢复策略比它更强；但我们已吸收它在 degraded mode、诊断面、append-only timeline、mock parity 上的长处</td>
+              </tr>
+              <tr>
+                <td>OpenClaw</td>
+                <td>个人助理 / 网关型 agent</td>
+                <td>常驻 daemon、多渠道入口、多模型整合、更像现成产品</td>
+                <td>设备主权边界、逐步验票、统一回滚状态机、分级隔离和低功耗调度更系统化</td>
+              </tr>
+              <tr>
+                <td>Claude Code</td>
+                <td>开发工作台 agent</td>
+                <td>终端、IDE、桌面、浏览器里的编码与开发者工作流</td>
+                <td>跨应用设备控制、宿主主权、执行分层、风险治理和长期自治约束</td>
+              </tr>
+              <tr>
+                <td>Codex</td>
+                <td>云端并行编码代理</td>
+                <td>仓库级软件工程、云端后台任务、GitHub/PR、并行委托</td>
+                <td>本地事件驱动、整机动作治理、低功耗常驻、宿主侧安全边界</td>
+              </tr>
+              <tr>
+                <td>OpenCode</td>
+                <td>本地可配置 agent harness</td>
+                <td>rules、permissions、subagents、skills、本地 CLI 工作流</td>
+                <td>完整设备代理架构，明确规定 broker、ticket、verifier、sandbox、rollback 的因果关系</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flow-note">
+            一句话：<strong>它们大多优化任务执行体验，我这套方案优先优化主权边界和长期自治成本。</strong>
+          </div>
+        </section>
+
+        <section class="section" id="packages">
+          <div class="section-head">
+            <div class="tag">Code Layout</div>
+            <h2>代码结构</h2>
+            <p>包结构的目标是让每个 crate / module 对应一个稳定职责，不让 planner 和 broker 混权。</p>
+          </div>
+          <div class="pkg-grid">
+            <div class="mini"><strong class="mono">sda-core</strong><br />主状态机、任务调度、生命周期管理。</div>
+            <div class="mini"><strong class="mono">sda-policy</strong><br />Cedar 集成、审批校验、ticket 签发与验票。</div>
+            <div class="mini"><strong class="mono">sda-state</strong><br />SQLite schema、state index、artifact index、health snapshots。</div>
+            <div class="mini"><strong class="mono">sda-sessionlog</strong><br />append-only JSONL timeline、导出、旋转归档、重放。</div>
+            <div class="mini"><strong class="mono">sda-memory</strong><br />typed memory store、promotion、confidence、expiry、retrieval。</div>
+            <div class="mini"><strong class="mono">sda-reflex</strong><br />规则路由、宏匹配、缓存命中、硬件档位感知。</div>
+            <div class="mini"><strong class="mono">sda-local-model</strong><br />可选小模型推理层，仅提供分类/摘要能力。</div>
+            <div class="mini"><strong class="mono">sda-planner-openai</strong><br />OpenAI Responses planner 适配器。</div>
+            <div class="mini"><strong class="mono">sda-adapter-uia</strong><br />Windows UIA 结构化界面适配器。</div>
+            <div class="mini"><strong class="mono">sda-adapter-browser</strong><br />DOM 抓取、Playwright worker、isolated browser profile。</div>
+            <div class="mini"><strong class="mono">sda-exec-host</strong><br />宿主最小权限执行器，封装 shell、filesystem、system API。</div>
+            <div class="mini"><strong class="mono">sda-exec-vm</strong><br />一次性 VM 生命周期、桥接票据、工件回收。</div>
+            <div class="mini"><strong class="mono">sda-plugins</strong><br />插件/技能 manifest、hook、生命周期和权限声明。</div>
+            <div class="mini"><strong class="mono">sda-diagnostics</strong><br />doctor、status、sandbox、degraded report。</div>
+            <div class="mini"><strong class="mono">sda-compat-harness</strong><br />mock provider / executor / approval / rollback parity harness。</div>
+            <div class="mini"><strong class="mono">sda-verifier</strong><br />postcondition checker、read-after-write、补偿调度。</div>
+            <div class="mini"><strong class="mono">sda-console</strong><br />本地控制台，只负责提交任务、展示状态、人工审批。</div>
+          </div>
+          <div class="code-card" style="margin-top: 18px">
+            <strong>Repository skeleton</strong>
+            <pre>device-agent/
+  crates/
+    sda-core/
+    sda-policy/
+    sda-state/
+    sda-sessionlog/
+    sda-memory/
+    sda-reflex/
+    sda-local-model/
+    sda-planner-openai/
+    sda-adapter-uia/
+    sda-adapter-browser/
+    sda-exec-host/
+    sda-exec-vm/
+    sda-plugins/
+    sda-diagnostics/
+    sda-compat-harness/
+    sda-verifier/
+    sda-console/
+  policies/
+  migrations/
+  macros/
+  fixtures/
+  docs/</pre>
+          </div>
+        </section>
+
+        <section class="section" id="acceptance">
+          <div class="section-head">
+            <div class="tag">Acceptance Gates</div>
+            <h2>验收门槛</h2>
+            <p>“看起来能跑”不算完成。可交付必须量化到功耗、安全、恢复性和成本下降趋势。</p>
+          </div>
+          <div class="grid-3">
+            <div class="card">
+              <span class="kicker">Power</span>
+              <h3>空闲不做多余事</h3>
+              <p>CPU-only 档位下空闲态不能持续截图，不能持续云调用，核心服务应维持低占用并可长时间运行。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Safety</span>
+              <h3>所有执行先验票</h3>
+              <p>抽样检查任意动作，必须能追到 ticket、approval_ref、artifact、receipt 和 verifier 结果。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Reliability</span>
+              <h3>失败后状态可知</h3>
+              <p>任何失败都必须停在 completed、rolled_back、paused_for_human 三者之一，不能留下未知状态。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Coverage</span>
+              <h3>结构化路径优先达成</h3>
+              <p>固定任务集里，绝大多数稳定流程应优先命中 API、UIA/DOM 或 deterministic script，而不是像素兜底。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Economics</span>
+              <h3>重复任务越来越便宜</h3>
+              <p>宏命中率随时间上升，frontier token、截图次数和人工确认率随时间下降。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Recoverability</span>
+              <h3>高风险有补偿路径</h3>
+              <p>删改、安装、外发、改权限等动作必须具备草稿、快照、撤回、undo manifest 或双阶段提交之一。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Parity</span>
+              <h3>Mock harness 先于真机验证</h3>
+              <p>provider、执行器、审批、回滚和 degraded mode 都必须先通过 deterministic parity harness，再进入真实设备环境。</p>
+            </div>
+            <div class="card">
+              <span class="kicker">Memory</span>
+              <h3>长期记忆可查、可删、可失效</h3>
+              <p>任意长期记忆都必须能追到来源、置信度、最近验证时间和撤销条件；用户必须可查看、修正和删除。</p>
+            </div>
+          </div>
+          <div class="flow-note">
+            这些门槛的目的不是追求完美，而是避免系统在“看起来很智能”的同时，实际上不可控、不可审计、不可恢复。
+          </div>
+        </section>
+
+        <footer>
+          文档文件：<strong>C:\Users\84915\device-agent-doc\v2-spec.html</strong><br />
+          角色定位：历史工程参考，保留旧版实现思路、模块划分和技术候选，不再作为当前规范源。<br />
+          当前规范请以 <a href="v3-design-freeze.html">v3-design-freeze.html</a> 为准。
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

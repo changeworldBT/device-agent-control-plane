@@ -1,0 +1,22 @@
+{
+  "receipt_id": "receipt_refresh_workbook_001",
+  "action_id": "action_refresh_workbook_001",
+  "task_id": "task_weekly_report_2026w15",
+  "node_id": "node_refresh_report",
+  "grant_id": "grant_refresh_report_001",
+  "executor_id": "executor.local.spreadsheet",
+  "status": "succeeded_with_receipt",
+  "started_at": "2026-04-10T11:03:00+08:00",
+  "ended_at": "2026-04-10T11:05:30+08:00",
+  "artifact_refs": [
+    "artifact_report_xlsx",
+    "artifact_delta_summary_md"
+  ],
+  "side_effect_summary": "Workbook refreshed and delta summary emitted",
+  "environment_digest": {
+    "host": "windows-primary",
+    "app": "spreadsheet-adapter",
+    "version": "1.0"
+  },
+  "retry_index": 0
+}

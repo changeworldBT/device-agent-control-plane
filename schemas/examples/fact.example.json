@@ -1,0 +1,25 @@
+{
+  "fact_id": "fact_report_refreshed",
+  "fact_type": "observed",
+  "statement": "Weekly report workbook was refreshed from source.csv",
+  "provenance": {
+    "kind": "verification-backed-observation",
+    "receipt_ref": "receipt_refresh_workbook_001"
+  },
+  "observed_at": "2026-04-10T11:05:30+08:00",
+  "verified_at": "2026-04-10T11:06:00+08:00",
+  "valid_until": "2026-04-10T18:00:00+08:00",
+  "attestation_level": "receipt_plus_verification",
+  "confidence": 0.98,
+  "supersedes": "fact_report_refreshed_prev",
+  "conflict_set": [],
+  "scope": {
+    "path": "C:/Users/84915/device-agent-doc/reports/weekly.xlsx"
+  },
+  "evidence_refs": [
+    "receipt_refresh_workbook_001",
+    "verify_refresh_workbook_001"
+  ],
+  "status": "verified",
+  "version": 3
+}

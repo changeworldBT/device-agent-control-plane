@@ -1,0 +1,16 @@
+{
+  "account_id": "acct_northwind_001",
+  "account_name": "Northwind Device Services",
+  "renewal_status": "pending_review",
+  "renewal_date": "2026-05-01",
+  "owner_name": "Avery Chen",
+  "owner_email": "avery.chen@example.test",
+  "contact_email": "renewals@northwind.example.test",
+  "last_note": "Customer asked for a follow-up after pricing review.",
+  "history": [
+    {
+      "at": "2026-04-08T09:30:00+08:00",
+      "event": "renewal flagged for follow-up"
+    }
+  ]
+}

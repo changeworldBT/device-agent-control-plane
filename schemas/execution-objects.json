@@ -1,0 +1,167 @@
+{
+  "draft_name": "execution-objects",
+  "version": "v3-freeze-draft-2026-04-10",
+  "source_spec": "../v3-design-freeze.html#appendix-schemas",
+  "objects": {
+    "CapabilityGrant": {
+      "required": [
+        "grant_id",
+        "task_id",
+        "node_id",
+        "who",
+        "what",
+        "where",
+        "when",
+        "budget",
+        "why",
+        "approval_ref",
+        "postcondition_ref",
+        "status",
+        "issued_at",
+        "expires_at"
+      ],
+      "optional": [
+        "revocation_reason",
+        "principal_ref",
+        "resource_owner_ref",
+        "approver_ref"
+      ],
+      "rules": [
+        "grant only applies to one explicit node and scope",
+        "task_id + node_id + where + when are the minimum validity surface",
+        "R3 actions must not be broadly covered by standing grants"
+      ]
+    },
+    "ActionSpec": {
+      "required": [
+        "action_id",
+        "task_id",
+        "node_id",
+        "action_type",
+        "required_capability",
+        "target_scope",
+        "inputs",
+        "preconditions",
+        "expected_artifacts",
+        "postconditions",
+        "budget",
+        "idempotency_key"
+      ],
+      "optional": [
+        "grant_ref",
+        "compensation_policy_ref",
+        "side_effect_class"
+      ],
+      "rules": [
+        "ActionSpec describes intended execution, not completed execution",
+        "side effects must be proven by ExecutionReceipt, not inferred from ActionSpec",
+        "high externality actions should declare compensation or unrecoverable loss semantics"
+      ]
+    },
+    "ExecutionReceipt": {
+      "required": [
+        "receipt_id",
+        "action_id",
+        "task_id",
+        "node_id",
+        "grant_id",
+        "executor_id",
+        "status",
+        "started_at",
+        "ended_at",
+        "artifact_refs",
+        "side_effect_summary",
+        "environment_digest",
+        "retry_index"
+      ],
+      "optional": [
+        "error_summary"
+      ],
+      "rules": [
+        "receipt records what happened",
+        "receipt cannot by itself mark a task or node completed"
+      ]
+    },
+    "VerificationResult": {
+      "required": [
+        "verification_id",
+        "task_id",
+        "node_id",
+        "receipt_refs",
+        "result",
+        "supporting_evidence",
+        "remaining_uncertainties",
+        "state_transition",
+        "verified_at",
+        "verifier_id"
+      ],
+      "optional": [
+        "recommended_recovery_action"
+      ],
+      "rules": [
+        "verification judges whether desired state change is proven",
+        "verification must not fabricate execution facts that lack receipts"
+      ]
+    },
+    "ProcedureAsset": {
+      "required": [
+        "procedure_id",
+        "name",
+        "status",
+        "scope",
+        "applicable_task_types",
+        "required_capabilities",
+        "success_criteria",
+        "risk_ceiling",
+        "promotion_evidence_refs",
+        "updated_at"
+      ],
+      "optional": [
+        "failure_modes",
+        "rollback_hint",
+        "deprecation_reason"
+      ],
+      "rules": [
+        "trusted procedure may directly auto-hit R0 and conditionally auto-hit R1",
+        "R2 procedures may aid selection but must not auto-clear risk",
+        "R3 procedures must never auto-clear commit or approval boundaries"
+      ]
+    },
+    "StateCapsule": {
+      "required": [
+        "capsule_id",
+        "capsule_type",
+        "task_id",
+        "node_id",
+        "objective",
+        "desired_delta",
+        "current_task_state",
+        "verified_facts",
+        "open_questions",
+        "hard_constraints",
+        "soft_constraints",
+        "active_grants_summary",
+        "relevant_artifacts",
+        "recent_decisions",
+        "pending_dependencies",
+        "candidate_next_actions",
+        "failure_or_recovery_context",
+        "freshness_markers",
+        "validator_ref",
+        "generated_at",
+        "generator_ref"
+      ],
+      "optional": [],
+      "rules": [
+        "capsule compresses state for resume or handoff",
+        "hard and soft constraints must be distinguished for validation",
+        "capsule is never the authoritative truth source"
+      ]
+    }
+  },
+  "execution_invariants": [
+    "no action dispatch without an active grant",
+    "no terminal task or node transition without verification result",
+    "no procedure promotion without receipt-backed and verification-backed evidence"
+  ]
+}

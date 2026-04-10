@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "defs.schema.json",
+  "title": "Shared Definitions",
+  "$defs": {
+    "NonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "Id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "Timestamp": {
+      "type": "string",
+      "minLength": 1
+    },
+    "StringList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/NonEmptyString"
+      }
+    },
+    "TaskType": {
+      "type": "string",
+      "enum": [
+        "Observe",
+        "Synthesize",
+        "Prepare",
+        "Operate",
+        "Commit",
+        "Monitor"
+      ]
+    },
+    "FactType": {
+      "type": "string",
+      "enum": [
+        "observed",
+        "inferred",
+        "policy",
+        "derived"
+      ]
+    },
+    "TaskState": {
+      "type": "string",
+      "enum": [
+        "created",
+        "ready",
+        "blocked",
+        "awaiting_approval",
+        "running",
+        "verifying",
+        "completed",
+        "failed",
+        "rolled_back",
+        "paused_for_human",
+        "cancelled"
+      ]
+    },
+    "RiskClass": {
+      "type": "string",
+      "enum": [
+        "R0",
+        "R1",
+        "R2",
+        "R3"
+      ]
+    },
+    "FactStatus": {
+      "type": "string",
+      "enum": [
+        "candidate",
+        "verified",
+        "stale",
+        "revoked"
+      ]
+    },
+    "ProcedureStatus": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "trial",
+        "trusted",
+        "deprecated"
+      ]
+    },
+    "GrantStatus": {
+      "type": "string",
+      "enum": [
+        "issued",
+        "active",
+        "exhausted",
+        "expired",
+        "revoked"
+      ]
+    },
+    "ReceiptStatus": {
+      "type": "string",
+      "enum": [
+        "succeeded_with_receipt",
+        "failed_before_side_effect",
+        "failed_after_partial_side_effect",
+        "timed_out",
+        "aborted_due_to_grant_loss"
+      ]
+    },
+    "VerificationResult": {
+      "type": "string",
+      "enum": [
+        "verified_success",
+        "verified_failure",
+        "insufficient_evidence",
+        "policy_violation_detected",
+        "human_confirmation_required"
+      ]
+    },
+    "RecoveryAction": {
+      "type": "string",
+      "enum": [
+        "retry",
+        "replan",
+        "rollback",
+        "compensate",
+        "escalate"
+      ]
+    },
+    "CapsuleType": {
+      "type": "string",
+      "enum": [
+        "resume",
+        "handoff",
+        "archive"
+      ]
+    },
+    "FlexibleObject": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "FlexibleArray": {
+      "type": "array",
+      "items": true
+    }
+  }
+}

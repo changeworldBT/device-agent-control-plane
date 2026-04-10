@@ -1,0 +1,152 @@
+{
+  "replay_id": "replay_crm_followup_001",
+  "title": "CRM Update and Controlled Follow-up Commit",
+  "goal": "Update a CRM renewal field and send a follow-up email only after explicit approval",
+  "task_profile": {
+    "task_path": [
+      "Observe",
+      "Synthesize",
+      "Prepare",
+      "Operate",
+      "Commit"
+    ],
+    "default_risk_band": "R2",
+    "attention_budget_profile": {
+      "max_interruptions": 2,
+      "must_confirm_before_commit": true
+    }
+  },
+  "nodes": [
+    {
+      "node_id": "node_read_crm_record",
+      "node_type": "observe_sensitive_record",
+      "purpose": "Read current CRM state and capture pre-write baseline",
+      "risk_band": "R1",
+      "expected_terminal": "completed"
+    },
+    {
+      "node_id": "node_prepare_patch",
+      "node_type": "prepare_crm_patch",
+      "purpose": "Generate proposed field update and email draft",
+      "risk_band": "R1",
+      "expected_terminal": "completed"
+    },
+    {
+      "node_id": "node_write_crm",
+      "node_type": "operate_crm_update",
+      "purpose": "Write approved field change with rollback path",
+      "risk_band": "R2",
+      "expected_terminal": "completed"
+    },
+    {
+      "node_id": "node_send_email",
+      "node_type": "commit_external_send",
+      "purpose": "Send approved follow-up email",
+      "risk_band": "R3",
+      "expected_terminal": "completed"
+    }
+  ],
+  "timeline": [
+    {
+      "step": 1,
+      "node_id": "node_read_crm_record",
+      "command": "action.dispatch",
+      "events": [
+        "grant.issued",
+        "action.dispatched",
+        "receipt.recorded",
+        "verification.recorded"
+      ],
+      "notes": "Sensitive read is low externality but still scoped by owner, principal, and environment trust",
+      "invariant_refs": [
+        "grant_scoped_to_node_and_resource"
+      ],
+      "policy_refs": [
+        "sensitive_read_band_assignment"
+      ]
+    },
+    {
+      "step": 2,
+      "node_id": "node_prepare_patch",
+      "command": "action.dispatch",
+      "events": [
+        "grant.issued",
+        "receipt.recorded",
+        "verification.recorded",
+        "node.state_changed(verifying->completed)"
+      ],
+      "notes": "Prepare stage emits candidate patch and email draft, but neither is yet committed",
+      "invariant_refs": [
+        "prepare_commit_barrier"
+      ],
+      "policy_refs": [
+        "auto_stage_prepare_outputs"
+      ]
+    },
+    {
+      "step": 3,
+      "node_id": "node_write_crm",
+      "command": "grant.request",
+      "events": [
+        "approval.recorded",
+        "grant.issued",
+        "action.dispatched",
+        "receipt.recorded",
+        "verification.recorded"
+      ],
+      "notes": "CRM field write is reversible through a bounded rollback to captured baseline value",
+      "invariant_refs": [
+        "no_action_without_grant",
+        "operate_write_requires_verification"
+      ],
+      "policy_refs": [
+        "composite_risk_scoring",
+        "approval_granularity_for_R2"
+      ]
+    },
+    {
+      "step": 4,
+      "node_id": "node_send_email",
+      "command": "grant.request",
+      "events": [
+        "approval.recorded",
+        "grant.issued",
+        "action.dispatched",
+        "receipt.recorded",
+        "verification.recorded",
+        "recovery.recorded"
+      ],
+      "notes": "Email send crosses Prepare-to-Commit barrier and requires explicit approval; no rollback exists, only compensate via correction mail",
+      "invariant_refs": [
+        "explicit_approval_for_high_risk_commit",
+        "compensation_required_when_rollback_impossible"
+      ],
+      "policy_refs": [
+        "R3_confirmation_copy",
+        "post_send_compensation_window"
+      ]
+    }
+  ],
+  "invariants_exercised": [
+    "single truth source with event-backed state",
+    "prepare and commit are separate transitions",
+    "high-risk commit requires explicit approval",
+    "compensation is first-class when rollback is impossible"
+  ],
+  "policy_surfaces": [
+    "R2 versus R3 thresholding",
+    "selector scoring weights",
+    "approval phrasing and UX",
+    "compensation window and escalation policy"
+  ],
+  "terminal_expectation": {
+    "task_terminal": "completed",
+    "proof": [
+      "receipt_crm_write_001",
+      "verify_crm_write_001",
+      "receipt_send_followup_001",
+      "verify_send_followup_001"
+    ],
+    "recovery_mode": "compensate"
+  }
+}

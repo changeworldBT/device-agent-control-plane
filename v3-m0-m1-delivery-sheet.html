@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3 M0 M1 Delivery Sheet</title>
+  <style>
+    :root {
+      --bg: #f2ece2;
+      --paper: rgba(255, 252, 246, 0.96);
+      --panel: rgba(245, 239, 231, 0.94);
+      --ink: #16201c;
+      --muted: #5f6f68;
+      --line: rgba(22, 32, 28, 0.12);
+      --teal: #0e6a61;
+      --copper: #98643d;
+      --warn: #8d4f3f;
+      --shadow: 0 22px 60px rgba(40, 35, 28, 0.1);
+      --radius: 22px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.7;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(14, 106, 97, 0.1), transparent 26%),
+        radial-gradient(circle at 100% 10%, rgba(152, 100, 61, 0.08), transparent 24%),
+        linear-gradient(180deg, #faf5ec 0%, var(--bg) 100%);
+    }
+
+    a { color: inherit; }
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.06;
+    }
+    h1 { font-size: clamp(2.4rem, 4.4vw, 4.4rem); }
+    h2 { font-size: clamp(1.7rem, 3vw, 2.35rem); }
+    h3 { font-size: 1.08rem; }
+    p { margin: 0; }
+    ul { margin: 0; padding-left: 18px; }
+    li + li { margin-top: 7px; }
+    code, .mono { font-family: Consolas, "SFMono-Regular", monospace; }
+
+    .shell {
+      width: min(calc(100% - 28px), var(--max));
+      margin: 24px auto 40px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero, .section {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(180deg, var(--paper), rgba(245, 239, 231, 0.94));
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    .eyebrow, .tag {
+      display: inline-block;
+      color: var(--copper);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.76rem;
+    }
+
+    .hero-grid, .grid-2, .grid-3 {
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero-grid { grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.85fr); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .badge-row, .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .badge, .cta, .card, .callout, .task {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .badge {
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .cta {
+      text-decoration: none;
+      padding: 10px 14px;
+      font-weight: 600;
+    }
+
+    .cta.primary {
+      background: var(--teal);
+      color: #f6fbf9;
+      border-color: transparent;
+    }
+
+    .card, .callout, .task {
+      padding: 16px 18px;
+    }
+
+    .callout {
+      border-left: 4px solid var(--teal);
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .task {
+      display: grid;
+      gap: 10px;
+      background: rgba(255, 252, 246, 0.92);
+    }
+
+    .task-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+
+    .task-id {
+      color: var(--teal);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.82rem;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .task-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px 14px;
+      background: rgba(245, 239, 231, 0.8);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      overflow: hidden;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(255, 252, 246, 0.88);
+    }
+
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      font-size: 0.86rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: rgba(14, 106, 97, 0.08);
+    }
+
+    tbody tr:last-child td { border-bottom: 0; }
+
+    .warning {
+      color: var(--warn);
+      font-weight: 700;
+    }
+
+    footer {
+      color: var(--muted);
+      font-size: 0.96rem;
+      padding: 18px 4px 10px;
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid, .grid-2, .grid-3, .task-grid { grid-template-columns: 1fr; }
+      .hero, .section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">April 10, 2026 · Build Companion</div>
+      <div class="hero-grid">
+        <div>
+          <h1>把 M0 / M1 变成真正可开工的交付清单。</h1>
+          <p>这份文档承接 <a href="v3-design-freeze.html">canonical freeze</a>、<a href="v3-mvp-backlog.html">MVP backlog</a> 和 <a href="v3-m0-m1-execution-plan.html">M0/M1 execution plan</a>。它不再讨论原则，而是把 <span class="mono">W1-W7</span> 压成可执行任务、可见输入输出、可审验收证据和明确停机信号。</p>
+          <div class="badge-row">
+            <div class="badge">Execution-Ready</div>
+            <div class="badge">Task-Level Done Criteria</div>
+            <div class="badge">Failure Signals Included</div>
+            <div class="badge">Single-Agent Only</div>
+          </div>
+          <div class="cta-row">
+            <a class="cta primary" href="v3-m0-m1-execution-plan.html">查看 execution plan</a>
+            <a class="cta" href="v3-mvp-backlog.html">查看 MVP backlog</a>
+            <a class="cta" href="schemas/examples/flows/research-brief-flow.json">Replay A fixture</a>
+            <a class="cta" href="schemas/examples/flows/crm-followup-flow.json">Replay B fixture</a>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <strong>Use This For</strong>
+            <p>把工作分配给首批实现者，避免“大家都知道要做 W4，但没人知道第一刀切在哪”。</p>
+          </div>
+          <div class="card">
+            <strong>Do Not Use This For</strong>
+            <p>不把这里的切片、任务顺序和目录命名误当成新的冻结层。它们是当前迭代的交付策略，不是架构公理。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">1. Entry Conditions</div>
+      <h2>开工前先锁住边界</h2>
+      <div class="grid-3">
+        <div class="card">
+          <strong>Scope Lock</strong>
+          <p>只做 Replay A 的可运行闭环，外加 Replay B 所需的语义位点。真实 Commit 执行仍然不进入本轮。</p>
+        </div>
+        <div class="card">
+          <strong>Truth Shape</strong>
+          <p>底层必须是 append-only event log，上层是 materialized view。不得直接把一份内存对象树当唯一真相实现。</p>
+        </div>
+        <div class="card">
+          <strong>Proof Goal</strong>
+          <p>本轮证明的是授权、验证、时间语义、冲突语义、低打扰选择器，而不是“系统会很多能力”。</p>
+        </div>
+      </div>
+      <div class="callout" style="margin-top: 16px;">
+        <p><strong>Start Rule:</strong> 如果某项工作不能直接改善 <span class="mono">replay load / event provenance / fact semantics / grant guard / verification gate / selector attention / capsule export</span> 之一，就不应进入 M0/M1。</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">2. Delivery Tasks</div>
+      <h2>把 W1-W7 压成 12 个可执行任务</h2>
+      <div class="stack">
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T01</div>
+              <h3>Schema Gateway</h3>
+            </div>
+            <div class="meta">Maps to W1</div>
+          </div>
+          <p>建立一个统一入口读取 <span class="mono">schemas/json-schema</span> 与 <span class="mono">schemas/examples</span>，确保运行时消费的是同一套 contract，而不是再手写一套平行对象。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p>现有 JSON Schema 与 example payload</p></div>
+            <div class="mini"><strong>Output</strong><p>统一加载器和解析失败模型</p></div>
+            <div class="mini"><strong>Done</strong><p>无业务代码时即可装载 Replay A timeline</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>装载时默认补字段或吞掉 schema 错误</p></div>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T02</div>
+              <h3>Replay Loader</h3>
+            </div>
+            <div class="meta">Maps to W1</div>
+          </div>
+          <p>把 flow fixture 编译成有因果顺序的 timeline，而不是随手遍历 JSON。timeline 需要保留 event causation、expected state changes 和 assertions 位点。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p><span class="mono">task-replay.schema.json</span> 与两条 replay</p></div>
+            <div class="mini"><strong>Output</strong><p>可执行 timeline + step index</p></div>
+            <div class="mini"><strong>Done</strong><p>Replay A/B 都能被解析成稳定步骤序列</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>顺序依赖靠运行时猜测而不是 fixture 显式表达</p></div>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T03</div>
+              <h3>Event Append Path</h3>
+            </div>
+            <div class="meta">Maps to W2</div>
+          </div>
+          <p>实现 append-only 写入路径，强制 event envelope 持有 <span class="mono">event_id / causation / correlation / trace / recorded_at</span>，并且做按 <span class="mono">event_id</span> 去重。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p>EventEnvelope schema</p></div>
+            <div class="mini"><strong>Output</strong><p>写入接口、dedup guard、append test</p></div>
+            <div class="mini"><strong>Done</strong><p>重复 append 不生成重复事件</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>任何业务层可直接改写历史事件</p></div>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T04</div>
+              <h3>Projector Bootstrap</h3>
+            </div>
+            <div class="meta">Maps to W2/W3</div>
+          </div>
+          <p>建立从事件流到物化视图的单向 projector，最少投影 TaskNode、Fact、Grant、Receipt、Verification 五种视图。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p>append-only event log</p></div>
+            <div class="mini"><strong>Output</strong><p>deterministic projector + rebuild path</p></div>
+            <div class="mini"><strong>Done</strong><p>删除缓存后仍能完整重建当前视图</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>重建必须依赖隐藏内存状态</p></div>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T05</div>
+              <h3>Task Transition Guards</h3>
+            </div>
+            <div class="meta">Maps to W4</div>
+          </div>
+          <p>把 <span class="mono">created -> ready -> running -> verifying -> completed</span> 等节点迁移守卫实现成显式规则，不允许靠调用顺序隐式推进。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p>Task state machine contract</p></div>
+            <div class="mini"><strong>Output</strong><p>transition validator</p></div>
+            <div class="mini"><strong>Done</strong><p>无 verification 不能进 terminal</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>execution path 可直接写 completed</p></div>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T06</div>
+              <h3>Fact Time Semantics</h3>
+            </div>
+            <div class="meta">Maps to W4</div>
+          </div>
+          <p>把事实从静态值改成带时间和来源的声明：最少落实 <span class="mono">fact_type / provenance / observed_at / verified_at / valid_until / ttl / attestation_level</span>。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p>Fact schema 与 replay assertions</p></div>
+            <div class="mini"><strong>Output</strong><p>freshness evaluator</p></div>
+            <div class="mini"><strong>Done</strong><p>过期事实自动降为 stale</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>verified fact 被当永久真相</p></div>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T07</div>
+              <h3>Fact Conflict Semantics</h3>
+            </div>
+            <div class="meta">Maps to W4</div>
+          </div>
+          <p>落实 <span class="mono">conflict_set / supersedes</span> 语义，让冲突事实先并存，再经裁决事件收敛，而不是谁后写谁覆盖。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p>candidate 与 verified fact events</p></div>
+            <div class="mini"><strong>Output</strong><p>conflict-aware view logic</p></div>
+            <div class="mini"><strong>Done</strong><p>冲突事实在未裁决前稳定并存</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>last write wins 掩盖冲突</p></div>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T08</div>
+              <h3>Grant Guard</h3>
+            </div>
+            <div class="meta">Maps to W5</div>
+          </div>
+          <p>建立最小授权守卫，检查 <span class="mono">who / what / where / when / budget / why</span> 是否匹配 action，不允许“先跑起来再补 grant”。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p>CapabilityGrant schema</p></div>
+            <div class="mini"><strong>Output</strong><p>active grant evaluator</p></div>
+            <div class="mini"><strong>Done</strong><p>无 active grant dispatch 被拒绝</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>低风险动作默认绕过授权</p></div>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T09</div>
+              <h3>Structured Dispatch + Receipt</h3>
+            </div>
+            <div class="meta">Maps to W5</div>
+          </div>
+          <p>只做本轮需要的低风险结构化动作，并强制每次执行都落一条 receipt。dispatch 成功不等于任务完成。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p>ActionSpec 与 local execution adapter</p></div>
+            <div class="mini"><strong>Output</strong><p>dispatch path + receipt recorder</p></div>
+            <div class="mini"><strong>Done</strong><p>每次副作用都有可追溯 receipt</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>执行成功却无 receipt</p></div>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T10</div>
+              <h3>Verification Gate</h3>
+            </div>
+            <div class="meta">Maps to W5</div>
+          </div>
+          <p>把 terminal eligibility 收到验证器里，验证器只看任务目标、postcondition、receipt、evidence，而不看“调用方是不是觉得已经完成”。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p>VerificationResult schema</p></div>
+            <div class="mini"><strong>Output</strong><p>verification evaluator</p></div>
+            <div class="mini"><strong>Done</strong><p>无 verification terminal transition 被拒绝</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>任何 adapter 可直接宣告 done</p></div>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T11</div>
+              <h3>Selector v0 with Attention Budget</h3>
+            </div>
+            <div class="meta">Maps to W6</div>
+          </div>
+          <p>选择器必须先做硬约束过滤，再按 freshness、health、verification strength、risk、attention、cost 评分。默认路径顺序只能当 tie-breaker，不能写成不可挑战的全序。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p>candidate actions + policy context</p></div>
+            <div class="mini"><strong>Output</strong><p>ranked next-step result</p></div>
+            <div class="mini"><strong>Done</strong><p>Replay A 在不过度 ask 的情况下完成</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>attention budget 未进入 decision rationale</p></div>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="task-head">
+            <div>
+              <div class="task-id">T12</div>
+              <h3>Minimal Capsule Export</h3>
+            </div>
+            <div class="meta">Maps to W7</div>
+          </div>
+          <p>只做 <span class="mono">resume / handoff</span> 最小 capsule 导出，且必须区分 hard constraints 与 soft notes。capsule 只引用真相切片，不成为新真相副本。</p>
+          <div class="task-grid">
+            <div class="mini"><strong>Input</strong><p>materialized state slice</p></div>
+            <div class="mini"><strong>Output</strong><p>capsule serializer + validator</p></div>
+            <div class="mini"><strong>Done</strong><p>导出后可校验 hard constraints 与 freshness markers</p></div>
+            <div class="mini"><strong>Fail Signal</strong><p>capsule 被用来替代共享状态面</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">3. Pull Order</div>
+      <h2>任务顺序按因果链走，不按模块热情走</h2>
+      <table>
+        <thead>
+          <tr><th>Wave</th><th>Tasks</th><th>Why This Order</th><th>Should Not Happen Yet</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Wave 0</td><td>T01, T02</td><td>先锁 contract 与 replay 输入，不然后续所有运行时都会漂移</td><td>自定义平行对象模型</td></tr>
+          <tr><td>Wave 1</td><td>T03, T04</td><td>先有事件来源和 projector，后面才有真实状态语义</td><td>直接堆 service 内存状态</td></tr>
+          <tr><td>Wave 2</td><td>T05, T06, T07</td><td>先把 Task / Fact 语义钉死，再接执行和选择</td><td>先做 UI 或广兼容 adapter</td></tr>
+          <tr><td>Wave 3</td><td>T08, T09, T10</td><td>完成 grant -> dispatch -> receipt -> verification 的闭环</td><td>真实 Commit 执行</td></tr>
+          <tr><td>Wave 4</td><td>T11, T12</td><td>最后再接 selector 和 capsule，避免两者掩盖下层漏洞</td><td>多 agent handoff / merge review</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="tag">4. Test Inventory</div>
+      <h2>首批测试要覆盖什么</h2>
+      <table>
+        <thead>
+          <tr><th>Test</th><th>Targets</th><th>Evidence</th><th>Stop If Fails</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Schema fixture validation</td><td>T01/T02</td><td>replay load log</td><td>是，contract 输入不稳就不要继续</td></tr>
+          <tr><td>Event dedup test</td><td>T03</td><td>same event_id single materialization</td><td>是，真相源不稳</td></tr>
+          <tr><td>Projector rebuild test</td><td>T04</td><td>cold rebuild equals hot view</td><td>是，状态面实现方向错</td></tr>
+          <tr><td>Task transition guard test</td><td>T05</td><td>invalid terminal transition rejected</td><td>是，终态语义被破坏</td></tr>
+          <tr><td>Fact freshness downgrade test</td><td>T06</td><td>verified becomes stale on expiry</td><td>是，时间语义未落地</td></tr>
+          <tr><td>Fact conflict coexistence test</td><td>T07</td><td>conflicting facts both visible pre-resolution</td><td>是，冲突被静默吞掉</td></tr>
+          <tr><td>Grant rejection test</td><td>T08</td><td>dispatch denied without active grant</td><td>是，系统仍是裸工具编排</td></tr>
+          <tr><td>Receipt presence test</td><td>T09</td><td>all side effects emit receipts</td><td>是，执行不可审计</td></tr>
+          <tr><td>Verification gate test</td><td>T10</td><td>terminal requires verification result</td><td>是，完成语义失效</td></tr>
+          <tr><td>Replay A selector test</td><td>T11</td><td>low-attention valid next-step output</td><td>否，但应阻止进入 M2</td></tr>
+          <tr><td>Capsule validator test</td><td>T12</td><td>hard constraints + freshness preserved</td><td>否，但应阻止 handoff 相关扩展</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="tag">5. Day-One Repo Shape</div>
+      <h2>第一批文件位点只建议，不冻结</h2>
+      <div class="grid-2">
+        <div class="card">
+          <strong>Suggested Runtime Folders</strong>
+          <ul>
+            <li><span class="mono">runtime/events</span></li>
+            <li><span class="mono">runtime/projector</span></li>
+            <li><span class="mono">domain/tasks</span></li>
+            <li><span class="mono">domain/facts</span></li>
+            <li><span class="mono">control/grants</span></li>
+            <li><span class="mono">execution/local</span></li>
+            <li><span class="mono">verification/core</span></li>
+            <li><span class="mono">selector/v0</span></li>
+            <li><span class="mono">replay/runner</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Rule</strong>
+          <p>这些只是首轮实现位点，用来降低并行开发冲突，不是 canonical architecture。后续如果需要合并或重命名，只要不破坏冻结合同即可。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tag">6. Exit Gate</div>
+      <h2>只有满足这些，才允许走向 M2</h2>
+      <div class="grid-3">
+        <div class="card">
+          <strong>Must Be Green</strong>
+          <ul>
+            <li>T01-T10 全部通过</li>
+            <li>Replay A 可完整回放</li>
+            <li>grant / verification 无绕路</li>
+            <li>Fact 时间与冲突语义已测</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Can Still Be Narrow</strong>
+          <ul>
+            <li>T11 只要能解释 decision rationale</li>
+            <li>T12 只要支持最小 resume / handoff</li>
+            <li>Procedure 仍可停在 draft/trial</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Do Not Expand Yet</strong>
+          <ul>
+            <li>多 agent orchestration</li>
+            <li>真实 Commit 执行</li>
+            <li>全量 compatibility mesh</li>
+            <li>复杂 memory ranking</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" style="margin-top: 16px;">
+        <p><strong>M2 Trigger:</strong> 只有当 M0/M1 已经证明“没授权不执行、没验证不完成、事实不会静默过期污染、选择器能控制打扰成本”后，才值得进入 Replay B 的真实 Operate / Commit / compensate 闭环。</p>
+      </div>
+    </section>
+
+    <footer>
+      文档文件：<strong>C:\Users\84915\device-agent-doc\v3-m0-m1-delivery-sheet.html</strong><br />
+      角色定位：M0/M1 的非规范交付清单，把 work package 压成具体任务、验收证据和停机信号。<br />
+      规范正文：<a href="v3-design-freeze.html">v3-design-freeze.html</a>；实现 companion：<a href="v3-mvp-backlog.html">v3-mvp-backlog.html</a>；执行 companion：<a href="v3-m0-m1-execution-plan.html">v3-m0-m1-execution-plan.html</a>。
+    </footer>
+  </div>
+</body>
+</html>

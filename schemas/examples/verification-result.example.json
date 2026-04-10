@@ -1,0 +1,20 @@
+{
+  "verification_id": "verify_refresh_workbook_001",
+  "task_id": "task_weekly_report_2026w15",
+  "node_id": "node_refresh_report",
+  "receipt_refs": [
+    "receipt_refresh_workbook_001"
+  ],
+  "result": "verified_success",
+  "supporting_evidence": [
+    "artifact_report_xlsx",
+    "artifact_delta_summary_md"
+  ],
+  "remaining_uncertainties": [],
+  "state_transition": {
+    "from": "verifying",
+    "to": "completed"
+  },
+  "verified_at": "2026-04-10T11:06:00+08:00",
+  "verifier_id": "verifier.report-refresh"
+}

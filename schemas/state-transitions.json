@@ -1,0 +1,57 @@
+{
+  "draft_name": "state-transitions",
+  "version": "v3-freeze-draft-2026-04-10",
+  "source_spec": "../v3-design-freeze.html#appendix-contracts",
+  "transitions": {
+    "task_or_node": {
+      "created": ["ready", "blocked", "cancelled"],
+      "ready": ["awaiting_approval", "running", "blocked", "cancelled"],
+      "awaiting_approval": ["ready", "paused_for_human", "cancelled"],
+      "blocked": ["ready", "paused_for_human", "cancelled"],
+      "running": ["verifying", "blocked", "paused_for_human", "cancelled"],
+      "verifying": ["completed", "failed", "rolled_back", "paused_for_human"],
+      "completed": [],
+      "failed": [],
+      "rolled_back": [],
+      "paused_for_human": [],
+      "cancelled": []
+    },
+    "fact": {
+      "candidate": ["verified", "stale", "revoked"],
+      "verified": ["stale", "revoked"],
+      "stale": ["candidate", "verified", "revoked"],
+      "revoked": []
+    },
+    "procedure_asset": {
+      "draft": ["trial", "deprecated"],
+      "trial": ["trusted", "deprecated"],
+      "trusted": ["deprecated"],
+      "deprecated": ["trial"]
+    },
+    "capability_grant": {
+      "issued": ["active", "revoked", "expired"],
+      "active": ["exhausted", "revoked", "expired"],
+      "exhausted": [],
+      "expired": [],
+      "revoked": []
+    },
+    "node_ownership_lease": {
+      "offered": ["active"],
+      "active": ["expired", "yielded", "revoked"],
+      "expired": [],
+      "yielded": [],
+      "revoked": []
+    },
+    "resource_write_lease": {
+      "requested": ["active"],
+      "active": ["expired", "revoked"],
+      "expired": [],
+      "revoked": []
+    }
+  },
+  "rules": [
+    "terminal states are not reopened in place; new work must use a new node",
+    "verified facts and trusted procedures are not permanent and may degrade",
+    "expired, revoked, or exhausted grants and leases must stop new side effects immediately"
+  ]
+}

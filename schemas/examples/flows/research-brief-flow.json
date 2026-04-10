@@ -1,0 +1,136 @@
+{
+  "replay_id": "replay_research_brief_001",
+  "title": "Research Brief Replay",
+  "goal": "Produce a cited vendor comparison brief without external side effects",
+  "task_profile": {
+    "task_path": [
+      "Observe",
+      "Synthesize",
+      "Prepare"
+    ],
+    "default_risk_band": "R0",
+    "attention_budget_profile": {
+      "max_interruptions": 0,
+      "allow_pause_for_human_before_send": true
+    }
+  },
+  "nodes": [
+    {
+      "node_id": "node_collect_sources",
+      "node_type": "observe_sources",
+      "purpose": "Collect documents and webpages into artifact set",
+      "risk_band": "R0",
+      "expected_terminal": "completed"
+    },
+    {
+      "node_id": "node_extract_facts",
+      "node_type": "synthesize_facts",
+      "purpose": "Extract time-bound candidate facts with provenance and conflicts",
+      "risk_band": "R0",
+      "expected_terminal": "completed"
+    },
+    {
+      "node_id": "node_prepare_brief",
+      "node_type": "prepare_brief",
+      "purpose": "Draft brief with citations and unresolved conflicts noted",
+      "risk_band": "R1",
+      "expected_terminal": "completed"
+    }
+  ],
+  "timeline": [
+    {
+      "step": 1,
+      "node_id": "node_collect_sources",
+      "command": "task.create",
+      "events": [
+        "task.created",
+        "node.state_changed(created->ready)"
+      ],
+      "invariant_refs": [
+        "task_over_conversation",
+        "truth_independent_of_model_context"
+      ],
+      "policy_refs": [
+        "default_task_path_language"
+      ]
+    },
+    {
+      "step": 2,
+      "node_id": "node_collect_sources",
+      "command": "action.dispatch",
+      "events": [
+        "grant.issued",
+        "action.dispatched",
+        "receipt.recorded",
+        "verification.recorded",
+        "node.state_changed(verifying->completed)"
+      ],
+      "notes": "Observe-only path uses low-friction grant and immediate verification through artifact collection",
+      "invariant_refs": [
+        "no_action_without_grant",
+        "no_terminal_without_verification"
+      ],
+      "policy_refs": [
+        "selector_default_prefers_structured_sources"
+      ]
+    },
+    {
+      "step": 3,
+      "node_id": "node_extract_facts",
+      "command": "node.decompose",
+      "events": [
+        "node.state_changed(created->ready)",
+        "verification.recorded"
+      ],
+      "notes": "Conflicting vendor claims remain coexisting candidate facts until evidence resolves them",
+      "invariant_refs": [
+        "verified_fact_requires_evidence",
+        "conflicting_facts_do_not_silently_overwrite"
+      ],
+      "policy_refs": [
+        "fact_ttl_window",
+        "attestation_weighting"
+      ]
+    },
+    {
+      "step": 4,
+      "node_id": "node_prepare_brief",
+      "command": "action.dispatch",
+      "events": [
+        "grant.issued",
+        "action.dispatched",
+        "receipt.recorded",
+        "verification.recorded",
+        "node.state_changed(verifying->completed)"
+      ],
+      "notes": "Draft generation completes because evidence_of_done is artifact production, not external send",
+      "invariant_refs": [
+        "prepare_is_not_commit",
+        "artifact_is_not_fact"
+      ],
+      "policy_refs": [
+        "auto_complete_prepare_nodes",
+        "capsule_optional_for_short_tasks"
+      ]
+    }
+  ],
+  "invariants_exercised": [
+    "task over conversation",
+    "single truth source with evidence-backed facts",
+    "no verification bypass",
+    "no commit hidden inside prepare"
+  ],
+  "policy_surfaces": [
+    "fact freshness window",
+    "selector source preference",
+    "whether completed draft pauses for human by default"
+  ],
+  "terminal_expectation": {
+    "task_terminal": "completed",
+    "proof": [
+      "artifact_vendor_brief_md",
+      "artifact_source_index",
+      "verification_prepare_brief_001"
+    ]
+  }
+}

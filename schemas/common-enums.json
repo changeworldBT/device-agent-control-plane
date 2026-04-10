@@ -1,0 +1,102 @@
+{
+  "draft_name": "common-enums",
+  "version": "v3-freeze-draft-2026-04-10",
+  "source_spec": "../v3-design-freeze.html#appendix-schemas",
+  "enums": {
+    "task_type": [
+      "Observe",
+      "Synthesize",
+      "Prepare",
+      "Operate",
+      "Commit",
+      "Monitor"
+    ],
+    "fact_type": [
+      "observed",
+      "inferred",
+      "policy",
+      "derived"
+    ],
+    "task_state": [
+      "created",
+      "ready",
+      "blocked",
+      "awaiting_approval",
+      "running",
+      "verifying",
+      "completed",
+      "failed",
+      "rolled_back",
+      "paused_for_human",
+      "cancelled"
+    ],
+    "risk_class": [
+      "R0",
+      "R1",
+      "R2",
+      "R3"
+    ],
+    "fact_status": [
+      "candidate",
+      "verified",
+      "stale",
+      "revoked"
+    ],
+    "procedure_status": [
+      "draft",
+      "trial",
+      "trusted",
+      "deprecated"
+    ],
+    "grant_status": [
+      "issued",
+      "active",
+      "exhausted",
+      "expired",
+      "revoked"
+    ],
+    "receipt_status": [
+      "succeeded_with_receipt",
+      "failed_before_side_effect",
+      "failed_after_partial_side_effect",
+      "timed_out",
+      "aborted_due_to_grant_loss"
+    ],
+    "verification_result": [
+      "verified_success",
+      "verified_failure",
+      "insufficient_evidence",
+      "policy_violation_detected",
+      "human_confirmation_required"
+    ],
+    "recovery_action": [
+      "retry",
+      "replan",
+      "rollback",
+      "compensate",
+      "escalate"
+    ],
+    "capsule_type": [
+      "resume",
+      "handoff",
+      "archive"
+    ],
+    "owner_lease_status": [
+      "offered",
+      "active",
+      "expired",
+      "yielded",
+      "revoked"
+    ],
+    "write_lease_status": [
+      "requested",
+      "active",
+      "expired",
+      "revoked"
+    ]
+  },
+  "rules": [
+    "implementation may add local diagnostic enums but must not rewrite these meanings",
+    "core state transitions must remain compatible with state-transitions.json"
+  ]
+}
