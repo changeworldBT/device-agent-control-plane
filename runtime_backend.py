@@ -1,35 +1,77 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent
 RUST_CORE = ROOT / "rust-core"
+RUST_CARGO_CONFIG = RUST_CORE / ".cargo" / "config.toml"
+DEFAULT_RUST_TARGET = "x86_64-pc-windows-gnullvm"
+
+
+def load_rust_cargo_config() -> dict:
+    if not RUST_CARGO_CONFIG.exists():
+        return {}
+    with RUST_CARGO_CONFIG.open("rb") as handle:
+        return tomllib.load(handle)
 
 
 def configured_rust_target() -> str | None:
     value = os.environ.get("DEVICE_AGENT_RUST_TARGET", "").strip()
-    return value or None
+    if value:
+        return value
+
+    build = load_rust_cargo_config().get("build", {})
+    if not isinstance(build, dict):
+        return None
+
+    configured = build.get("target")
+    if isinstance(configured, str):
+        configured = configured.strip()
+        if configured:
+            return configured
+    return None
+
+
+def project_target_dir() -> Path:
+    return RUST_CORE / "target"
 
 
 def candidate_cargo_paths() -> list[Path]:
     candidates: list[Path] = []
+
+    which_cargo = shutil.which("cargo")
+    if which_cargo:
+        candidates.append(Path(which_cargo))
+
     program_files = Path("C:/Program Files")
     if program_files.exists():
         candidates.extend(sorted(program_files.glob("Rust stable LLVM */bin/cargo.exe"), reverse=True))
         candidates.extend(sorted(program_files.glob("Rust stable MSVC */bin/cargo.exe"), reverse=True))
+
     candidates.append(Path.home() / ".cargo" / "bin" / "cargo.exe")
-    return candidates
+
+    deduped: list[Path] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        key = str(candidate).lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(candidate)
+    return deduped
 
 
 def resolve_cargo() -> Path:
     for candidate in candidate_cargo_paths():
         if candidate.exists():
             return candidate
-    raise FileNotFoundError("no cargo executable found in known locations")
+    raise FileNotFoundError("no cargo executable found in PATH or standard installation locations")
 
 
 def rust_backend_available() -> bool:
@@ -44,7 +86,8 @@ def resolve_rust_sysroot_bin(cargo: Path | None = None, *, target: str | None = 
     rustc = resolved.parent / "rustc.exe"
     if not rustc.exists():
         rustc = Path("rustc")
-    effective_target = target or configured_rust_target() or "x86_64-pc-windows-gnullvm"
+
+    effective_target = target or configured_rust_target() or DEFAULT_RUST_TARGET
     probe_env = os.environ.copy()
     probe_env["PATH"] = str(resolved.parent) + os.pathsep + probe_env.get("PATH", "")
     completed = subprocess.run(
@@ -56,6 +99,7 @@ def resolve_rust_sysroot_bin(cargo: Path | None = None, *, target: str | None = 
     )
     if completed.returncode != 0:
         return None
+
     sysroot = Path(completed.stdout.strip())
     candidate = sysroot / "lib" / "rustlib" / effective_target / "bin"
     if candidate.exists():
@@ -94,11 +138,11 @@ def run_rust_bin(bin_name: str, args: list[str] | None = None) -> int:
 
 
 def backend_argument_help() -> str:
-    return "execution backend: auto prefers Rust when cargo and rust-core are available"
+    return "execution backend: auto prefers Rust when cargo and the project Rust configuration are available"
 
 
 def backend_missing_message() -> str:
-    return "Rust backend requested but no working cargo installation was found"
+    return "Rust backend requested but no working cargo installation or project Rust configuration was found"
 
 
 def exit_backend_missing() -> int:

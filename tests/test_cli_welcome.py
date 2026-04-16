@@ -9,9 +9,10 @@ class CliWelcomeTests(unittest.TestCase):
     def test_welcome_renders_golden_dragon_banner(self) -> None:
         rendered = render_welcome(color=False)
 
-        self.assertIn("/0  0  \\__", rendered)
+        self.assertIn("金色中国龙", rendered)
+        self.assertIn("(@::@)", rendered)
         self.assertIn("DEVICE AGENT CONTROL PLANE", rendered)
-        self.assertIn("golden dragon console", rendered)
+        self.assertIn("金色中国龙 console", rendered)
         self.assertNotIn("\x1b[", rendered)
 
     def test_welcome_can_render_with_ansi_gold(self) -> None:

@@ -9,8 +9,8 @@ Developer-preview repository for a controlled device-agent execution core. The p
 This is a developer preview, not a finished end-user product.
 
 Working today:
-- CLI welcome screen with a golden-dragon console banner.
-- Local visual UI for choosing CLI/UI mode, previewing provider routes, and editing model-provider config.
+- CLI welcome screen with a golden Chinese-dragon console banner.
+- Local visual UI with dashboard-style Chat/Control/Agent/Settings navigation for choosing CLI/UI mode, previewing provider routes, managing provider config by vendor/custom grouping, editing the selected provider/channel values in the matching section, reading OpenAI-compatible model lists from a base URL plus API key, and calling the current chat role route live against OpenAI-compatible providers.
 - OpenClaw migration preview that maps OpenClaw agents/models/workspace evidence into candidate-only local config.
 - Bot channel configuration and preview dispatch for Telegram, WhatsApp Cloud API, Feishu/Lark custom webhooks, QQ official bots, and generic JSON webhooks.
 - Append-only event log and materialized state projector.
@@ -24,7 +24,7 @@ Working today:
 - Python/Rust parity checks for replay, local CRM, and mock HTTP CRM paths.
 
 Not finished:
-- Live LLM provider API calls. The current model layer is configuration and routing only.
+- General-purpose live LLM adapters beyond the current OpenAI-compatible `/chat/completions` chat path.
 - Direct import of OpenClaw credentials or sessions. Those are intentionally skipped.
 - General-purpose remote adapters beyond the validated mock HTTP CRM slice.
 - Browser automation.
@@ -64,21 +64,27 @@ The design favors falsifiable behavior over broad claims. A path is considered p
 ## Requirements
 
 - Python 3.13+
-- Rust toolchain for the Rust-first path
+- Rust toolchain for Rust development and parity validation
 - Windows is the currently validated environment
 
-The top-level scripts support `--backend auto|python|rust`. `auto` prefers Rust when a working cargo toolchain is available and falls back to Python otherwise.
+The packaged exe path does not require a Rust toolchain at runtime.
+The top-level development scripts support `--backend auto|python|rust`. `auto` prefers Rust when a working cargo toolchain and the project Rust configuration are available and falls back to Python otherwise.
+If the standard Rust environment is missing a required target, prepare it manually with:
+
+```powershell
+python .\bootstrap_rust_env.py
+```
 
 ## Model Provider Configuration
 
-The model layer is currently a configuration contract, not a live LLM client. It supports:
+The model layer is still centered on configuration and routing, with a bounded live chat path in the local UI for OpenAI-compatible `/chat/completions` providers. It supports:
 - Multiple named providers under `providers`.
 - `default_provider` and optional `active_provider`.
 - Runtime provider switching through `DEVICE_AGENT_MODEL_PROVIDER`.
 - `single_agent` mode, where all roles resolve through one default agent.
 - `multi_agent` mode, where roles such as `planner`, `classifier`, `summarizer`, and `verifier` can route to different team members and providers.
 - Secret indirection through environment variable names only. API keys are not stored in the JSON config.
-- A local UI that previews routing and writes validated local config to `config/model-providers.local.json`.
+- A local UI that previews routing, groups providers by vendor/custom, shows the selected provider's config and referenced values, can read an OpenAI-compatible `/models` list from the configured base URL/API key, writes validated local config to `config/model-providers.local.json`, edits referenced provider values in plaintext on localhost, and sends chat requests through the currently selected route.
 
 ## OpenClaw Migration
 
@@ -113,6 +119,8 @@ Copy-Item .\.env.example .\.env
 ```
 
 Use `.env` for local secrets and provider switches. Do not commit `.env` or `config/*.local.json`.
+The local Python entrypoints load `.env` automatically and do not override environment variables already set by the parent shell.
+The UI uses grouped dashboard navigation: Chat for local interaction preview, Control for dashboard/channel work, Agent for model-provider and team routing, and Settings for migration/raw config/CLI tools. Referenced `.env` values stay in the section that owns them: provider values under Models, channel tokens/targets under Channels, runtime overrides under Dashboard, and unreferenced values under Raw Config. Provider and channel pages show one selected object at a time; full lists are collapsed as reference indexes.
 
 ## Bot Channel Configuration
 
@@ -150,6 +158,8 @@ Start the local visual UI:
 python .\run_device_agent.py --interface ui
 python .\run_ui.py --no-open
 ```
+
+Open `http://127.0.0.1:8765/`, then use Dashboard for local status/runtime overrides, Models for provider base URLs/API keys, Channels for bot tokens/targets, and Chat to send a real request through the current role route. Each chat turn is appended locally under `runtime/chat_sessions/default.jsonl`.
 
 Run the full validation gate:
 

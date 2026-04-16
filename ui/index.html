@@ -7,162 +7,662 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="shell">
-      <section class="hero panel">
-        <div class="hero-copy">
-          <p class="eyebrow">Device Agent Control Plane</p>
-          <h1>Choose a surface. Keep authority local.</h1>
-          <p class="lede">
-            A compact cockpit for switching between CLI work and visual model-provider configuration.
-          </p>
-          <div class="surface-switch" role="tablist" aria-label="Interface mode">
-            <button class="surface active" data-panel="uiPanel" type="button">UI</button>
-            <button class="surface" data-panel="cliPanel" type="button">CLI</button>
+    <main id="appShell" class="shell" data-active-view="chatView">
+      <button
+        id="shellNavBackdrop"
+        class="shell-nav-backdrop"
+        type="button"
+        aria-label="Toggle navigation"
+      ></button>
+
+      <header class="topbar">
+        <div class="topnav-shell">
+          <button
+            id="navDrawerToggleButton"
+            class="topbar-nav-toggle"
+            type="button"
+            aria-label="Toggle navigation"
+            aria-expanded="false"
+          >
+            <span class="nav-collapse-toggle__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <line x1="4" y1="6" x2="20" y2="6"></line>
+                <line x1="4" y1="12" x2="20" y2="12"></line>
+                <line x1="4" y1="18" x2="20" y2="18"></line>
+              </svg>
+            </span>
+          </button>
+          <div class="topnav-shell__content">
+            <div class="dashboard-header">
+              <div class="dashboard-header__breadcrumb">
+                <span class="dashboard-header__breadcrumb-link" data-i18n="productName">Device Agent Control Plane</span>
+                <span class="dashboard-header__breadcrumb-sep" aria-hidden="true">/</span>
+                <span id="topbarViewTitle" class="dashboard-header__breadcrumb-current">Chat interaction</span>
+              </div>
+              <p id="topbarViewDescription" class="topnav-shell__description">Send a message first. Open setup only when you need to change routes.</p>
+            </div>
+          </div>
+          <div class="topnav-shell__actions">
+            <div class="topbar-search" role="status" aria-live="polite">
+              <span id="topbarSummaryLabel" class="topbar-search__label">Local workspace</span>
+              <kbd id="topbarSummaryBadge" class="topbar-search__kbd">ready</kbd>
+            </div>
+            <div class="topbar-status">
+              <span class="pill">
+                <span class="statusDot" aria-hidden="true"></span>
+                <span id="topbarSourceBadge" data-i18n="loading">loading</span>
+              </span>
+              <span class="pill">
+                <span id="topbarModeBadge" class="mono">off</span>
+              </span>
+            </div>
           </div>
         </div>
-        <pre class="dragon" aria-label="Golden dragon">
-      / \  //\
- |\___/| /   \//  \\
- /0  0  \__  //  | \ \
- @_^_@'   \/_//  |  \ \
-   V|      \///  |   \ \
-    |  ___ //    |    \ \
-   _| /   //     |     \_\
- .-~_/   ((      |        )
-         \\\\_.-~` `~</pre>
-      </section>
+      </header>
 
-      <section id="uiPanel" class="workspace panel mode-panel">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Visual Config</p>
-            <h2>Provider and agent routing</h2>
+      <div class="shell-nav">
+        <aside class="sidebar">
+          <div class="sidebar-shell">
+            <div class="sidebar-shell__header">
+              <div class="sidebar-brand">
+                <div class="brand-mark" aria-hidden="true">DA</div>
+                <div class="sidebar-brand__copy">
+                  <span class="sidebar-brand__eyebrow">Local control</span>
+                  <span class="sidebar-brand__title">Device Agent</span>
+                </div>
+              </div>
+              <button
+                id="navCollapseButton"
+                class="nav-collapse-toggle"
+                type="button"
+                aria-label="Collapse navigation"
+                aria-expanded="true"
+              >
+                <span class="nav-collapse-toggle__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M15 18l-6-6 6-6"></path>
+                  </svg>
+                </span>
+              </button>
+            </div>
+
+            <div class="sidebar-shell__body">
+              <nav class="side-nav sidebar-nav" aria-label="Console sections" data-i18n-aria-label="workspaceMap">
+                <section class="nav-section">
+                  <div class="nav-section__head">
+                    <p class="nav-section__label" data-i18n="navGroupChat">Chat</p>
+                    <span class="nav-section__count" aria-hidden="true">1</span>
+                  </div>
+                  <button class="nav-item active" data-view="chatView" type="button">
+                    <span class="nav-item__glyph" aria-hidden="true">01</span>
+                    <span class="nav-item__copy">
+                      <span data-i18n="mapChatTitle">Chat</span>
+                      <small data-i18n="mapChatCopy">Live route conversation.</small>
+                    </span>
+                  </button>
+                </section>
+                <section class="nav-section">
+                  <div class="nav-section__head">
+                    <p class="nav-section__label" data-i18n="navGroupControl">Control</p>
+                    <span class="nav-section__count" aria-hidden="true">2</span>
+                  </div>
+                  <button class="nav-item" data-view="gatewayView" type="button">
+                    <span class="nav-item__glyph" aria-hidden="true">02</span>
+                    <span class="nav-item__copy">
+                      <span data-i18n="mapDashboardTitle">Dashboard</span>
+                      <small data-i18n="mapDashboardCopy">Status, access, and runtime switches.</small>
+                    </span>
+                  </button>
+                  <button class="nav-item" data-view="channelsView" type="button">
+                    <span class="nav-item__glyph" aria-hidden="true">03</span>
+                    <span class="nav-item__copy">
+                      <span data-i18n="mapChannelsTitle">Channels</span>
+                      <small data-i18n="mapChannelsCopy">Bot dispatch previews.</small>
+                    </span>
+                  </button>
+                </section>
+                <section class="nav-section">
+                  <div class="nav-section__head">
+                    <p class="nav-section__label" data-i18n="navGroupAgent">Agent</p>
+                    <span class="nav-section__count" aria-hidden="true">1</span>
+                  </div>
+                  <button class="nav-item" data-view="modelsView" type="button">
+                    <span class="nav-item__glyph" aria-hidden="true">04</span>
+                    <span class="nav-item__copy">
+                      <span data-i18n="mapModelsTitle">Models</span>
+                      <small data-i18n="mapModelsCopy">Provider and agent routes.</small>
+                    </span>
+                  </button>
+                </section>
+                <section class="nav-section">
+                  <div class="nav-section__head">
+                    <p class="nav-section__label" data-i18n="navGroupSettings">Settings</p>
+                    <span class="nav-section__count" aria-hidden="true">3</span>
+                  </div>
+                  <button class="nav-item" data-view="migrationView" type="button">
+                    <span class="nav-item__glyph" aria-hidden="true">05</span>
+                    <span class="nav-item__copy">
+                      <span data-i18n="mapMigrationTitle">Migration</span>
+                      <small data-i18n="mapMigrationCopy">OpenClaw candidate import.</small>
+                    </span>
+                  </button>
+                  <button class="nav-item" data-view="rawConfigView" type="button">
+                    <span class="nav-item__glyph" aria-hidden="true">06</span>
+                    <span class="nav-item__copy">
+                      <span data-i18n="mapRawTitle">Raw Config</span>
+                      <small data-i18n="mapRawCopy">JSON escape hatch.</small>
+                    </span>
+                  </button>
+                  <button class="nav-item" data-view="cliView" type="button">
+                    <span class="nav-item__glyph" aria-hidden="true">07</span>
+                    <span class="nav-item__copy">
+                      <span data-i18n="mapCliTitle">CLI</span>
+                      <small data-i18n="mapCliCopy">Command surface.</small>
+                    </span>
+                  </button>
+                </section>
+              </nav>
+            </div>
+
+            <div class="sidebar-shell__footer">
+              <label class="language-field sidebar-utility-link">
+                <span data-i18n="languageLabel">Language</span>
+                <select id="languageSelect" aria-label="Language" data-i18n-aria-label="languageLabel">
+                  <option value="en">English</option>
+                  <option value="zh-CN">中文</option>
+                </select>
+              </label>
+              <div class="sidebar-version">
+                <span class="sidebar-version__label" data-i18n="gatewayStatusTitle">Status</span>
+                <span class="sidebar-version__text">localhost</span>
+                <span class="sidebar-version__status sidebar-connection-status--online" aria-hidden="true"></span>
+              </div>
+              <p class="side-note" data-i18n="localOnlyNote">
+                Local console. Secrets stay in env vars and local JSON.
+              </p>
+            </div>
           </div>
-          <span id="sourceBadge" class="badge">loading</span>
-        </div>
+        </aside>
+      </div>
 
-        <div class="control-grid">
-          <label>
-            Model mode
-            <select id="modeSelect">
-              <option value="off">off</option>
-              <option value="mock">mock</option>
-              <option value="live">live</option>
-            </select>
-          </label>
-          <label>
-            Agent mode
-            <select id="agentModeSelect">
-              <option value="single_agent">single_agent</option>
-              <option value="multi_agent">multi_agent</option>
-            </select>
-          </label>
-          <label>
-            Active provider
-            <select id="providerSelect"></select>
-          </label>
-        </div>
+      <section class="workbench content">
+        <header class="workbench-head">
+          <div class="workbench-head__copy">
+            <p class="workbench-kicker">
+              <span id="viewEyebrow" class="eyebrow">Gateway Access</span>
+              <span class="workbench-kicker__dot" aria-hidden="true"></span>
+              <span data-i18n="workbenchKicker">Local workspace</span>
+            </p>
+            <h2 id="viewTitle">Local command center</h2>
+            <p id="viewDescription" class="lede">Pick a function area from the left rail.</p>
+            <div id="workbenchViewMeta" class="workbench-head__chips"></div>
+          </div>
+          <div class="workbench-head__side">
+            <div class="workbench-head__badge-stack">
+              <span class="workbench-head__label" data-i18n="workbenchSourceLabel">Config source</span>
+              <span id="sourceBadge" class="badge" data-i18n="loading">loading</span>
+            </div>
+            <div class="workbench-head__stats">
+              <div class="workbench-stat">
+                <span data-i18n="dashboardProviders">Providers</span>
+                <strong id="workbenchProviderCount">0</strong>
+              </div>
+              <div class="workbench-stat">
+                <span data-i18n="dashboardRoutes">Routes</span>
+                <strong id="workbenchRouteCount">0</strong>
+              </div>
+              <div class="workbench-stat">
+                <span data-i18n="dashboardChannels">Channels</span>
+                <strong id="workbenchChannelCount">0</strong>
+              </div>
+            </div>
+          </div>
+        </header>
 
-        <div class="cards">
-          <article class="card">
-            <div class="card-title">Providers</div>
-            <div id="providersList" class="stack"></div>
+        <section id="gatewayView" class="view-panel">
+          <article class="dashboard-card dashboard-card--full quickstart-card">
+            <div class="section-head compact">
+              <div>
+                <p class="eyebrow" data-i18n="quickStartEyebrow">Quick Start</p>
+                <h2 data-i18n="quickStartTitle">3-step model test</h2>
+              </div>
+              <span id="quickProviderBadge" class="badge" data-i18n="loading">loading</span>
+            </div>
+            <p class="migration-copy" data-i18n="quickStartCopy">
+              To test a model call, only set Provider, Base URL/API Key, and Model. Everything else can stay unchanged.
+            </p>
+            <div class="quickstart-topbar">
+              <label>
+                <span data-i18n="quickProviderLabel">Provider</span>
+                <select id="quickProviderSelect"></select>
+              </label>
+              <div id="quickRouteSummary" class="quickstart-summary"></div>
+            </div>
+            <div class="quickstart-grid quickstart-grid--single">
+              <article class="quickstart-panel">
+                <div class="card-title" data-i18n="quickModelTitle">Model</div>
+                <p class="migration-copy" data-i18n="quickModelCopy">
+                  Read the model list for the current provider, choose one, then jump straight into chat testing.
+                </p>
+                <label>
+                  <span data-i18n="providerModelList">Models</span>
+                  <select id="quickProviderModelSelect"></select>
+                </label>
+                <div class="actions">
+                  <button id="quickFetchModelsButton" data-i18n="fetchModels" type="button">Fetch models</button>
+                  <button id="quickApplyModelButton" data-i18n="applySelectedModel" type="button">Use selected model</button>
+                  <button id="quickOpenChatButton" class="primary" data-i18n="quickOpenChat" type="button">Open chat test</button>
+                </div>
+                <p id="quickProviderModelStatus" class="model-status" data-i18n="noModelsLoaded">No models loaded.</p>
+              </article>
+            </div>
+            <details class="json-box folded-list quickstart-fold">
+              <summary data-i18n="quickProviderValuesTitle">Current provider values</summary>
+              <div class="quickstart-panel quickstart-panel--embedded">
+                <div id="quickProviderFields" class="env-field-grid"></div>
+                <div class="actions">
+                  <button class="env-reload-button" data-i18n="reloadValues" type="button">Reload values</button>
+                  <button class="env-save-button primary" data-i18n="saveValues" type="button">Save values</button>
+                </div>
+              </div>
+            </details>
           </article>
-          <article class="card">
-            <div class="card-title">Agent Team</div>
-            <div id="agentsList" class="stack"></div>
-          </article>
-          <article class="card route-card">
-            <div class="card-title">Route Preview</div>
-            <div id="routesList" class="stack"></div>
-          </article>
-        </div>
 
-        <article class="migration-card">
-          <div class="section-head compact">
+          <details class="json-box folded-list launchpad-fold">
+            <summary data-i18n="launchpadDiagnostics">Workspace diagnostics</summary>
+            <p class="launchpad-fold-copy" data-i18n="launchpadDiagnosticsCopy">
+              Open this only when you need to inspect local file sources, route state, or setup gaps.
+            </p>
+            <div class="dashboard-grid">
+              <article class="dashboard-card dashboard-card--wide">
+                <div class="section-head compact">
+                  <div>
+                    <p class="eyebrow" data-i18n="dashboardOverview">Overview</p>
+                    <h2 data-i18n="dashboardSnapshotTitle">Local dashboard snapshot</h2>
+                  </div>
+                  <span id="dashboardSourceBadge" class="badge">local</span>
+                </div>
+                <p class="migration-copy" data-i18n="dashboardSnapshotCopy">
+                  Live status is assembled from the local config, bot-channel config, route preview, and .env ownership map.
+                </p>
+                <div id="dashboardSnapshotList" class="metric-grid"></div>
+              </article>
+              <article class="dashboard-card">
+                <div class="card-title" data-i18n="dashboardAttentionTitle">Attention</div>
+                <p class="migration-copy" data-i18n="dashboardAttentionCopy">
+                  Only actionable local setup gaps are listed here.
+                </p>
+                <div id="dashboardAttentionList" class="attention-list"></div>
+              </article>
+              <article class="dashboard-card dashboard-card--full">
+                <div class="card-title" data-i18n="dashboardSourcesTitle">Local sources</div>
+                <p class="migration-copy" data-i18n="dashboardSourcesCopy">
+                  File paths used by this localhost console.
+                </p>
+                <div id="dashboardSourcesList" class="source-list"></div>
+              </article>
+            </div>
+          </details>
+          <details class="json-box folded-list launchpad-fold">
+            <summary data-i18n="runtimeValuesTitle">Local runtime switches</summary>
+            <p class="launchpad-fold-copy" data-i18n="runtimeAdvancedCopy">
+              Only change these when you need to override the normal chat route.
+            </p>
+            <article class="operation-card runtime-console runtime-console--nested">
+              <div class="section-head compact">
+                <div>
+                  <p class="eyebrow" data-i18n="runtimeValues">Runtime overrides</p>
+                  <h2 data-i18n="runtimeValuesTitle">Local runtime switches</h2>
+                </div>
+                <span id="envValuesBadge" class="badge">.env</span>
+              </div>
+              <p class="migration-copy" data-i18n="runtimeValuesCopy">
+                These values override model mode, active provider, and agent routing for this local process.
+              </p>
+              <div class="env-toolbar">
+                <code id="envFilePath">.env</code>
+                <div class="actions">
+                  <button class="env-reload-button" data-i18n="reloadValues" type="button">Reload values</button>
+                  <button class="env-save-button primary" data-i18n="saveValues" type="button">Save values</button>
+                </div>
+              </div>
+              <div id="envRuntimeFields" class="env-field-grid"></div>
+            </article>
+          </details>
+        </section>
+
+        <section id="modelsView" class="view-panel">
+          <div class="control-grid">
+            <label>
+              <span data-i18n="modelMode">Model mode</span>
+              <select id="modeSelect">
+                <option value="off">off</option>
+                <option value="mock">mock</option>
+                <option value="live">live</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="agentMode">Agent mode</span>
+              <select id="agentModeSelect">
+                <option value="single_agent">single_agent</option>
+                <option value="multi_agent">multi_agent</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="activeProvider">Active provider</span>
+              <select id="providerSelect"></select>
+            </label>
+          </div>
+
+          <details class="json-box advanced-config-box">
+            <summary data-i18n="advancedProviderManagement">Advanced provider management</summary>
+            <article class="operation-card provider-console">
+              <div class="section-head compact">
+                <div>
+                  <p class="eyebrow" data-i18n="providerManagement">Provider management</p>
+                  <h2 data-i18n="providerManagementTitle">Vendor and custom providers</h2>
+                </div>
+                <span class="badge" data-i18n="localConfig">local config</span>
+              </div>
+              <p class="migration-copy" data-i18n="providerManagementCopy">
+                Providers are grouped by vendor when a model ref has a vendor prefix. Local and hand-written entries are grouped as custom.
+              </p>
+              <div class="provider-add-grid">
+                <label>
+                  <span data-i18n="providerId">Provider ID</span>
+                  <input id="customProviderId" type="text" placeholder="custom_openai" />
+                </label>
+                <label>
+                  <span data-i18n="providerKind">Provider kind</span>
+                  <select id="customProviderKind">
+                    <option value="openai_compatible">openai_compatible</option>
+                    <option value="mock">mock</option>
+                  </select>
+                </label>
+                <label>
+                  <span data-i18n="providerModel">Default model</span>
+                  <input id="customProviderModel" type="text" placeholder="vendor/model-name" />
+                </label>
+                <label>
+                  <span data-i18n="providerBaseUrlEnv">Base URL env</span>
+                  <input id="customProviderBaseUrlEnv" type="text" placeholder="DEVICE_AGENT_PROVIDER_CUSTOM_BASE_URL" />
+                </label>
+                <label>
+                  <span data-i18n="providerApiKeyEnv">API key env</span>
+                  <input id="customProviderApiKeyEnv" type="text" placeholder="DEVICE_AGENT_PROVIDER_CUSTOM_API_KEY" />
+                </label>
+                <label>
+                  <span data-i18n="providerBaseUrlValue">Base URL value</span>
+                  <input id="customProviderBaseUrlValue" type="text" placeholder="https://api.example.com/v1" />
+                </label>
+                <label>
+                  <span data-i18n="providerApiKeyValue">API key value</span>
+                  <input id="customProviderApiKeyValue" type="text" autocomplete="off" placeholder="sk-..." />
+                </label>
+                <label>
+                  <span data-i18n="providerModelList">Models</span>
+                  <select id="customProviderModelSelect"></select>
+                </label>
+                <div class="provider-add-actions">
+                  <button id="fetchCustomProviderModelsButton" data-i18n="fetchModels" type="button">Fetch models</button>
+                  <button id="addProviderButton" data-i18n="addProvider" type="button">Add provider</button>
+                </div>
+              </div>
+              <p id="customProviderModelStatus" class="model-status" data-i18n="noModelsLoaded">No models loaded.</p>
+            </article>
+          </details>
+
+          <article class="operation-card provider-values-console">
+            <div class="section-head compact">
+              <div>
+                <p class="eyebrow" data-i18n="selectedProviderConfig">Selected Provider</p>
+                <h2 data-i18n="selectedProviderConfigTitle">Provider config and values</h2>
+              </div>
+            </div>
+            <p class="migration-copy" data-i18n="providerLocalValuesCopy">
+              These are the local values referenced by provider config. They are shown in plaintext on this localhost UI.
+            </p>
+            <div id="selectedProviderDetail" class="config-detail-grid"></div>
+            <div class="model-probe">
+              <div>
+                <div class="card-title" data-i18n="providerModelDiscovery">Model discovery</div>
+                <p class="migration-copy" data-i18n="providerModelDiscoveryCopy">
+                  For OpenAI-compatible providers, call the selected provider's /models endpoint using the current base URL and API key.
+                </p>
+              </div>
+              <label>
+                <span data-i18n="providerModelList">Models</span>
+                <select id="providerModelSelect"></select>
+              </label>
+              <div class="actions">
+                <button id="fetchProviderModelsButton" data-i18n="fetchModels" type="button">Fetch models</button>
+                <button id="applyProviderModelButton" data-i18n="applySelectedModel" type="button">Use selected model</button>
+              </div>
+              <p id="providerModelStatus" class="model-status" data-i18n="noModelsLoaded">No models loaded.</p>
+            </div>
+            <details class="json-box folded-list provider-values-fold">
+              <summary data-i18n="providerLocalValuesTitle">Base URLs, API keys, and default models</summary>
+              <div class="card-title" data-i18n="selectedProviderValues">Selected provider local values</div>
+              <div id="envModelFields" class="env-field-grid"></div>
+              <div class="actions">
+                <button class="env-reload-button" data-i18n="reloadValues" type="button">Reload values</button>
+                <button class="env-save-button primary" data-i18n="saveValues" type="button">Save values</button>
+              </div>
+            </details>
+          </article>
+
+          <details class="json-box folded-list">
+            <summary data-i18n="allProvidersSummary">All providers, agents, and route preview</summary>
+            <div class="cards">
+              <article class="card">
+                <div class="card-title" data-i18n="providers">Providers</div>
+                <div id="providersList" class="stack"></div>
+              </article>
+              <article class="card">
+                <div class="card-title" data-i18n="agentTeam">Agent Team</div>
+                <div id="agentsList" class="stack"></div>
+              </article>
+              <article class="card route-card">
+                <div class="card-title" data-i18n="routePreview">Route Preview</div>
+                <div id="routesList" class="stack"></div>
+              </article>
+            </div>
+          </details>
+
+          <div class="actions">
+            <button id="reloadButton" data-i18n="reload" type="button">Reload</button>
+            <button id="previewButton" data-i18n="previewRoutes" type="button">Preview routes</button>
+            <button id="saveButton" class="primary" data-i18n="saveLocalConfig" type="button">Save local config</button>
+          </div>
+        </section>
+
+        <section id="channelsView" class="view-panel">
+          <article class="operation-card">
+            <div class="section-head compact">
+              <div>
+                <p class="eyebrow" data-i18n="botChannels">Bot Channels</p>
+                <h2 data-i18n="botTitle">Telegram, WhatsApp, QQ, Feishu</h2>
+              </div>
+              <span id="botChannelBadge" class="badge" data-i18n="dryRun">dry-run</span>
+            </div>
+            <p class="migration-copy" data-i18n="botCopy">
+              Mainstream bot channels share one preview gateway. Live credentials stay in environment
+              variables; QQ is treated as gateway/SDK-only until a dedicated adapter is added.
+            </p>
+            <div class="control-grid migration-grid">
+              <label>
+                <span data-i18n="channel">Channel</span>
+                <select id="botChannelSelect"></select>
+              </label>
+              <label>
+                <span data-i18n="testMessage">Test message</span>
+                <input id="botChannelText" type="text" value="Device Agent test message" />
+              </label>
+              <div class="migration-actions">
+                <button id="botChannelPreviewButton" data-i18n="dryRunPreview" type="button">Dry-run preview</button>
+              </div>
+            </div>
+            <div id="selectedChannelDetail" class="config-detail-grid"></div>
+            <div class="channel-values-block">
+              <div class="card-title" data-i18n="selectedChannelValues">Selected channel local values</div>
+              <div id="envBotFields" class="env-field-grid"></div>
+              <div class="actions">
+                <button class="env-reload-button" data-i18n="reloadValues" type="button">Reload values</button>
+                <button class="env-save-button primary" data-i18n="saveValues" type="button">Save values</button>
+              </div>
+            </div>
+            <details class="json-box folded-list">
+              <summary data-i18n="allChannelsSummary">All channels</summary>
+              <div id="botChannelsList" class="stack"></div>
+            </details>
+            <div id="botChannelPreview" class="stack preview-stack"></div>
+          </article>
+        </section>
+
+        <section id="chatView" class="view-panel active">
+          <article class="chat-workspace">
+            <div class="chat-primary-bar">
+              <label class="chat-inline-field chat-inline-field--compact">
+                <span data-i18n="chatSessions">Sessions</span>
+                <select id="chatSessionSelect"></select>
+              </label>
+              <div class="chat-primary-actions">
+                <details id="chatSetupPanel" class="json-box folded-list chat-setup-panel">
+                  <summary data-i18n="chatSetupToggle">Setup</summary>
+                  <div class="chat-setup-panel__body">
+                    <div class="chat-context-shell chat-context-shell--secondary">
+                      <div class="chat-context-bar">
+                        <label class="chat-context-card">
+                          <span data-i18n="activeProvider">Active provider</span>
+                          <select id="chatProviderSelect"></select>
+                        </label>
+                        <label class="chat-context-card chat-context-card--model">
+                          <span data-i18n="providerModelList">Models</span>
+                          <select id="chatProviderModelSelect"></select>
+                        </label>
+                        <div id="chatCurrentRoute" class="chat-current-route"></div>
+                      </div>
+                      <div class="chat-context-subbar">
+                        <label>
+                          <span data-i18n="chatRole">Role</span>
+                          <select id="chatRoleSelect">
+                            <option value="planner">planner</option>
+                            <option value="classifier">classifier</option>
+                            <option value="summarizer">summarizer</option>
+                            <option value="verifier">verifier</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span data-i18n="modelMode">Model mode</span>
+                          <select id="chatModeSelect">
+                            <option value="off">off</option>
+                            <option value="mock">mock</option>
+                            <option value="live">live</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span data-i18n="agentMode">Agent mode</span>
+                          <select id="chatAgentModeSelect">
+                            <option value="single_agent">single_agent</option>
+                            <option value="multi_agent">multi_agent</option>
+                          </select>
+                        </label>
+                        <div class="chat-context-actions">
+                          <button id="chatFetchModelsButton" data-i18n="fetchModels" type="button">Fetch models</button>
+                          <button id="chatApplyModelButton" data-i18n="applySelectedModel" type="button">Use selected model</button>
+                          <button id="chatClearSessionButton" class="session-secondary" data-i18n="chatClearSession" type="button">Clear session</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="chatSessionSummary" class="chat-session-summary"></div>
+                    <div id="chatSessionList" class="session-strip">
+                      <button class="session-pill active" type="button" data-session-id="default" data-i18n="defaultSession">Default session</button>
+                    </div>
+                  </div>
+                </details>
+              </div>
+              <div class="chat-primary-status" hidden>
+                <span id="chatSessionBadge" class="badge" data-i18n="defaultSession">Default session</span>
+                <span id="chatRouteBadge" class="badge">route pending</span>
+              </div>
+            </div>
+            <div id="chatLog" class="chat-log" aria-live="polite"></div>
+            <form id="chatComposerForm" class="chat-composer">
+              <div class="chat-composer-main">
+                <textarea id="chatInput" rows="1" data-i18n-placeholder="chatPlaceholder" placeholder="Ask the local agent preview..."></textarea>
+                <button id="chatSendButton" class="primary" data-i18n="sendMessage" type="submit">Send</button>
+              </div>
+            </form>
+          </article>
+        </section>
+
+        <section id="migrationView" class="view-panel">
+          <article class="operation-card">
+            <div class="section-head compact">
+              <div>
+                <p class="eyebrow" data-i18n="openclawMigration">OpenClaw Migration</p>
+                <h2 data-i18n="openclawTitle">Smooth import, candidate-only by default</h2>
+              </div>
+              <span class="badge" data-i18n="dryRun">dry-run</span>
+            </div>
+            <p class="migration-copy" data-i18n="openclawCopy">
+              Reads OpenClaw JSON5-style config and workspace evidence, skips credentials/sessions, and
+              produces a reviewed local config draft.
+            </p>
+            <div class="control-grid migration-grid">
+              <label>
+                <span data-i18n="openclawConfig">OpenClaw config</span>
+                <input id="openclawConfigPath" type="text" />
+              </label>
+              <label>
+                <span data-i18n="workspaceOverride">Workspace override</span>
+                <input id="openclawWorkspacePath" type="text" />
+              </label>
+              <div class="migration-actions">
+                <button id="openclawPreviewButton" data-i18n="previewMigration" type="button">Preview migration</button>
+                <button id="openclawApplyButton" data-i18n="loadGeneratedConfig" type="button">Load generated config into editor</button>
+              </div>
+            </div>
+            <div id="openclawReport" class="stack"></div>
+          </article>
+        </section>
+
+        <section id="rawConfigView" class="view-panel">
+          <details id="rawConfig" class="json-box" open>
+            <summary data-i18n="advancedJsonEditor">Advanced JSON editor</summary>
+            <textarea id="jsonEditor" spellcheck="false"></textarea>
+          </details>
+          <details class="json-box other-env-box">
+            <summary data-i18n="otherValues">Other .env values</summary>
+            <p class="migration-copy" data-i18n="otherValuesCopy">
+              Values that are in .env but are not referenced by provider, channel, or runtime config.
+            </p>
+            <div id="envOtherFields" class="env-field-grid"></div>
+            <div class="actions">
+              <button class="env-reload-button" data-i18n="reloadValues" type="button">Reload values</button>
+              <button class="env-save-button primary" data-i18n="saveValues" type="button">Save values</button>
+            </div>
+          </details>
+        </section>
+
+        <section id="cliView" class="view-panel">
+          <div class="section-head">
             <div>
-              <p class="eyebrow">OpenClaw Migration</p>
-              <h2>Smooth import, candidate-only by default</h2>
+              <p class="eyebrow" data-i18n="cliSurface">CLI Surface</p>
+              <h2 data-i18n="cliTitle">Machine-readable commands stay clean</h2>
             </div>
-            <span class="badge">dry-run</span>
+            <span class="badge" data-i18n="jsonSafe">JSON safe</span>
           </div>
-          <p class="migration-copy">
-            Reads OpenClaw JSON5-style config and workspace evidence, skips credentials/sessions, and
-            produces a reviewed local config draft.
-          </p>
-          <div class="control-grid migration-grid">
-            <label>
-              OpenClaw config
-              <input id="openclawConfigPath" type="text" />
-            </label>
-            <label>
-              Workspace override
-              <input id="openclawWorkspacePath" type="text" />
-            </label>
-            <div class="migration-actions">
-              <button id="openclawPreviewButton" type="button">Preview migration</button>
-              <button id="openclawApplyButton" type="button">Load generated config into editor</button>
-            </div>
+          <div class="terminal">
+            <code>python .\run_welcome.py</code>
+            <code>python .\run_replays.py --backend rust</code>
+            <code>python .\run_http_crm_scenario.py --backend rust</code>
+            <code>python .\run_device_agent.py --interface ui</code>
+            <code>python .\run_bot_channels.py --list</code>
           </div>
-          <div id="openclawReport" class="stack"></div>
-        </article>
+        </section>
 
-        <article class="migration-card">
-          <div class="section-head compact">
-            <div>
-              <p class="eyebrow">Bot Channels</p>
-              <h2>Telegram, WhatsApp, QQ, Feishu</h2>
-            </div>
-            <span id="botChannelBadge" class="badge">dry-run</span>
-          </div>
-          <p class="migration-copy">
-            Mainstream bot channels share one preview gateway. Live credentials stay in environment
-            variables; QQ is treated as gateway/SDK-only until a dedicated adapter is added.
-          </p>
-          <div class="control-grid migration-grid">
-            <label>
-              Channel
-              <select id="botChannelSelect"></select>
-            </label>
-            <label>
-              Test message
-              <input id="botChannelText" type="text" value="Device Agent test message" />
-            </label>
-            <div class="migration-actions">
-              <button id="botChannelPreviewButton" type="button">Dry-run preview</button>
-            </div>
-          </div>
-          <div id="botChannelsList" class="stack"></div>
-          <div id="botChannelPreview" class="stack preview-stack"></div>
-        </article>
-
-        <details class="json-box">
-          <summary>Advanced JSON editor</summary>
-          <textarea id="jsonEditor" spellcheck="false"></textarea>
-        </details>
-
-        <div class="actions">
-          <button id="reloadButton" type="button">Reload</button>
-          <button id="previewButton" type="button">Preview routes</button>
-          <button id="saveButton" class="primary" type="button">Save local config</button>
-        </div>
-        <p id="statusLine" class="status">Loading configuration...</p>
-      </section>
-
-      <section id="cliPanel" class="workspace panel mode-panel hidden">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">CLI Surface</p>
-            <h2>Machine-readable commands stay clean</h2>
-          </div>
-          <span class="badge">JSON safe</span>
-        </div>
-        <div class="terminal">
-          <code>python .\run_welcome.py</code>
-          <code>python .\run_replays.py --backend rust</code>
-          <code>python .\run_http_crm_scenario.py --backend rust</code>
-          <code>python .\run_device_agent.py --interface ui</code>
-        </div>
+        <p id="statusLine" class="status" data-i18n="statusLoading">Loading configuration...</p>
       </section>
     </main>
     <script src="/app.js" defer></script>

@@ -3,7 +3,7 @@
 Rust implementation of the control-plane semantics first proven in the Python oracle runtime.
 
 Scope:
-- golden-dragon CLI welcome banner
+- golden Chinese-dragon CLI welcome banner
 - append-only event log
 - materialized state projector
 - fact time and freshness semantics
@@ -31,6 +31,8 @@ Local status:
 - mock HTTP CRM and compensation scenarios run against a local in-process HTTP server
 - model provider config resolves multi-provider defaults, provider overrides, and single/multi-agent team routing
 - top-level Python entrypoints default to Rust when available and can still be forced to Python
+- project build configuration lives in `rust-core/.cargo/config.toml`
+- project build outputs stay in `rust-core/target/`
 
 Reference implementation used to derive semantics:
 - `runtime/events/log.py`
@@ -49,6 +51,12 @@ Current validation:
 1. `python check_skeleton.py`
 2. `python check_rust.py`
 3. `python check_parity.py`
+
+Environment boundary:
+- keep Rust toolchain installation in the standard global environment (`cargo`, `rustup`, installed targets)
+- keep project build configuration in `rust-core/.cargo/config.toml`
+- keep project build outputs in `rust-core/target/`
+- if the required Rust target is missing, prepare it manually with `python ..\bootstrap_rust_env.py`
 
 User-facing entrypoints:
 1. `python ..\\run_replays.py`

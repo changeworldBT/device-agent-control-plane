@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 
 from cli_welcome import render_welcome
+from local_env import load_project_env
 from ui_backend import serve_ui
 
 
@@ -15,6 +16,7 @@ def main() -> int:
     parser.add_argument("--no-color", action="store_true", help="render the CLI welcome banner without ANSI colors")
     args = parser.parse_args()
 
+    load_project_env()
     if args.interface == "ui":
         return serve_ui(host=args.host, port=args.port, open_browser=not args.no_open)
 

@@ -9,8 +9,8 @@
 这是开发者预览版，不是面向最终用户的完整产品。
 
 目前已经可用：
-- 带金黄色龙形 banner 的 CLI 欢迎界面。
-- 本地可视化 UI，可选择 CLI/UI、预览 provider 路由，并编辑模型 provider 配置。
+- 带金色中国龙 banner 的 CLI 欢迎界面。
+- 本地可视化 UI，按 Dashboard 式 Chat/Control/Agent/Settings 分区导航，可选择 CLI/UI、预览 provider 路由，按厂商/自定义分组管理 provider，在模型/渠道/运行时对应页面编辑当前选中对象的本地值，可用 Base URL/API Key 读取 OpenAI-compatible 模型列表，并可在 Chat 页面通过当前角色路由真实调用 OpenAI-compatible Provider。
 - OpenClaw 迁移预览，可把 OpenClaw agents、模型和 workspace 证据映射成本地 candidate-only 配置。
 - Bot 渠道配置与预览 dispatch，覆盖 Telegram、WhatsApp Cloud API、飞书/Lark 自定义 webhook、QQ 官方 bot 和通用 JSON webhook。
 - 追加式事件日志和物化状态投影器。
@@ -24,7 +24,7 @@
 - replay、本地 CRM、mock HTTP CRM 路径的 Python/Rust parity 检查。
 
 尚未完成：
-- 真实 LLM provider API 调用。当前模型层只实现配置与路由，不会调用云模型。
+- 超出当前 OpenAI-compatible `/chat/completions` 对话路径的通用 live LLM 适配器。
 - 直接导入 OpenClaw credentials 或 sessions。它们会被刻意跳过。
 - 超出已验证 mock HTTP CRM 切片的通用远程适配器。
 - 浏览器自动化。
@@ -64,21 +64,27 @@
 ## 环境要求
 
 - Python 3.13+
-- 如果使用 Rust-first 路径，需要 Rust toolchain
+- 如果要做 Rust 开发和 parity 验证，需要 Rust toolchain
 - 当前已验证环境是 Windows
 
-顶层脚本支持 `--backend auto|python|rust`。`auto` 会在检测到可用 cargo toolchain 时优先使用 Rust，否则回退到 Python。
+预编译 exe 的运行时不需要 Rust toolchain。
+顶层开发脚本支持 `--backend auto|python|rust`。`auto` 会在检测到可用 cargo toolchain 且项目 Rust 配置可用时优先使用 Rust，否则回退到 Python。
+如果标准 Rust 环境缺少项目需要的 target，可手动执行：
+
+```powershell
+python .\bootstrap_rust_env.py
+```
 
 ## 模型 Provider 配置
 
-当前模型层是配置契约，不是真实 LLM client。它支持：
+当前模型层仍以配置和路由为核心，但本地 UI 已提供一条受限且可验证的 OpenAI-compatible `/chat/completions` live 对话路径。它支持：
 - 在 `providers` 下声明多个命名 provider。
 - 设置 `default_provider` 和可选的 `active_provider`。
 - 通过 `DEVICE_AGENT_MODEL_PROVIDER` 在运行时切换 provider。
 - `single_agent` 模式：所有角色都走同一个默认 agent。
 - `multi_agent` 模式：`planner`、`classifier`、`summarizer`、`verifier` 等角色可以路由到不同团队成员和不同 provider。
 - 密钥只通过环境变量名间接引用。API key 不写入 JSON 配置。
-- 本地 UI 可以预览路由，并把通过校验的本地配置写入 `config/model-providers.local.json`。
+- 本地 UI 可以预览路由，按厂商/自定义分组展示 provider，显示当前选中 Provider 的配置和引用值，可通过已配置 Base URL/API Key 读取 OpenAI-compatible `/models` 列表，把通过校验的本地配置写入 `config/model-providers.local.json`，在 localhost 上明文编辑 provider 引用的本地值，并通过当前选中的 chat 路由发送真实请求。
 
 ## OpenClaw 迁移
 
@@ -113,6 +119,8 @@ Copy-Item .\.env.example .\.env
 ```
 
 `.env` 用于本地密钥和 provider 切换。不要提交 `.env` 或 `config/*.local.json`。
+本地 Python 入口会自动加载 `.env`，但不会覆盖父 shell 里已经设置的环境变量。
+UI 使用分组 dashboard 导航：“对话”用于本地交互预览，“控制”用于总览和渠道，“Agent”用于模型 Provider 和团队路由，“设置”用于迁移、原始配置和 CLI 工具。被引用的 `.env` 值会放回对应归属页面：Provider 值在“模型”，渠道 token/target 在“渠道”，运行时覆盖在“总览”，未被引用的其他值在“原始配置”。Provider 和渠道页面一次只展示当前选中的对象；完整列表折叠成参考索引。
 
 ## Bot 渠道配置
 
@@ -150,6 +158,8 @@ python .\run_welcome.py --no-color
 python .\run_device_agent.py --interface ui
 python .\run_ui.py --no-open
 ```
+
+打开 `http://127.0.0.1:8765/`，在“总览”里查看本地状态和编辑运行时覆盖，在“模型”里编辑 provider base URL/API key，在“渠道”里编辑 bot token/目标 ID，并在“对话”里通过当前角色路由发送真实请求。每一轮 chat 都会追加保存到 `runtime/chat_sessions/default.jsonl`。
 
 运行完整验证门：
 

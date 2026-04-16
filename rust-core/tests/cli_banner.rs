@@ -4,9 +4,10 @@ use device_agent_core::render_welcome;
 fn welcome_renders_golden_dragon_banner() {
     let rendered = render_welcome(false);
 
-    assert!(rendered.contains(r"/0  0  \__"));
+    assert!(rendered.contains("金色中国龙"));
+    assert!(rendered.contains("(@::@)"));
     assert!(rendered.contains("DEVICE AGENT CONTROL PLANE"));
-    assert!(rendered.contains("golden dragon console"));
+    assert!(rendered.contains("金色中国龙 console"));
     assert!(!rendered.contains("\x1b["));
 }
 

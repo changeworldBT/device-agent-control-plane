@@ -6,6 +6,7 @@ from pathlib import Path
 
 from channels.bot_config import load_bot_channel_config
 from channels.bot_gateway import active_bot_config_path, list_channels, send_or_preview
+from local_env import load_project_env
 
 
 def main() -> int:
@@ -17,6 +18,7 @@ def main() -> int:
     parser.add_argument("--live", action="store_true", help="send using live channel credentials; default is dry-run preview")
     args = parser.parse_args()
 
+    load_project_env()
     config = load_bot_channel_config(args.config)
     if args.list:
         print(json.dumps({"channels": list_channels(config)}, indent=2, ensure_ascii=False))

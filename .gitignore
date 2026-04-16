@@ -15,6 +15,9 @@ sandbox/local-crm/runtime-rust-compensation/
 sandbox/http-crm/runtime/
 sandbox/http-crm/runtime-rust/
 sandbox/http-crm/runtime-rust-compensation/
+runtime/chat_sessions/
+runtime/tmp-tests/
+runtime/*.log
 
 .DS_Store
 Thumbs.db
